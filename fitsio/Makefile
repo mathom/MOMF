@@ -43,7 +43,7 @@ FFLAGS=-O -u
 #       default:                           RANLIB=ranlib
 #       SUN Solaris, CRAY, SGI, HP:        RANLIB=touch
 #
-RANLIB=ranlib
+RANLIB=touch
 #
 #*****************************************************************************
 
@@ -74,8 +74,8 @@ libfitsio.a:
 install: 	stand_alone
 
 cleansplit:
-		rm -rf split.*
+		echo rm -rf split.*
 
 clean:
-		rm fsplit libfitsio.a
+		rm -rf fsplit libfitsio.a split.*
 

@@ -1512,14 +1512,17 @@ C           is  1 less than a  multiple of 4 2-byte words.  (3, 7, 11, etc)
             remain=nvals-nvals/4*4
             if (remain .eq. 3)then
               if (nvals .gt. 3)then
-                ierr= cray2ieg(7,nvals-3,i2vals,0,i2vals,1,' ')
+C                ierr= cray2ieg(7,nvals-3,i2vals,0,i2vals,1,' ')
+                 ierr= 0
               end if
               temp(3)=i2vals(nvals)
               temp(2)=i2vals(nvals-1)
               temp(1)=i2vals(nvals-2)
-              ierr=cray2ieg(7,4,i2vals(nvals/4+1),0,temp,1,' ')
+C              ierr=cray2ieg(7,4,i2vals(nvals/4+1),0,temp,1,' ')
+              ierr=0
             else
-              ierr=cray2ieg(7,nvals,i2vals,0,i2vals,1,' ')
+C              ierr=cray2ieg(7,nvals,i2vals,0,i2vals,1,' ')
+              ierr=0
             end if
         end if
 
@@ -1562,12 +1565,14 @@ C         there is a bug in cray2ieg if the number of values to convert
 C         is not a multiple of 8 bytes.  
           neven=nvals/2*2
           if (neven .gt. 0)then
-              ierr= cray2ieg(1,neven,i4vals,0,i4vals,1,' ')
+C              ierr= cray2ieg(1,neven,i4vals,0,i4vals,1,' ')
+              ierr=0
           end if
 
           if (neven .ne. nvals)then
 C           have to do the remaining odd word separately
-            ierr= cray2ieg(1,1,i4vals(nvals/2+1),0,i4vals(nvals),1,' ')
+C            ierr= cray2ieg(1,1,i4vals(nvals/2+1),0,i4vals(nvals),1,' ')
+             ierr=0
           end if
         end if
 
@@ -1615,10 +1620,12 @@ C         must be a CRAY
 C         there is a bug in cray2ieg if the number of values to convert
 C         is not a multiple of 8 bytes.
           neven=nvals/2*2  
-          ierr= cray2ieg(2,neven,r4vals,0,r4vals,1,' ')
+C          ierr= cray2ieg(2,neven,r4vals,0,r4vals,1,' ')
+          ierr=0
           if (neven .ne. nvals)then
 C           have to do the remaining odd word separately
-            ierr= cray2ieg(2,1,r4vals(nvals/2+1),0,r4vals(nvals),1,' ')
+C            ierr= cray2ieg(2,1,r4vals(nvals/2+1),0,r4vals(nvals),1,' ')
+            ierr=0
           end if
         end if
 
@@ -1666,7 +1673,8 @@ C           convert from Alpha VMS format to IEEE
             call ftswby(r8vals,nvals*4)
         else
 C           must be a CRAY
-            ierr= cray2ieg(3,nvals,r8vals,0,r8vals,1,' ')
+C            ierr= cray2ieg(3,nvals,r8vals,0,r8vals,1,' ')
+            ierr=0
         end if
 
         if (incre .le. 8)then
@@ -1721,7 +1729,8 @@ C           convert from IEEE I*2 to cray I*8
 
 C           have to use a temporary array if nvals = 2 or 3
             if (nvals .le. 3)then
-              ierr=ieg2cray(7,nvals,i2vals,0,temp,1,' ')
+C              ierr=ieg2cray(7,nvals,i2vals,0,temp,1,' ')
+              ierr=0
               do 5 i=1,nvals
                   i2vals(i)=temp(i)
 5             continue
@@ -1732,7 +1741,8 @@ C             have to work backwards, so as to not overwrite the input data
               fpixel = (nloop*4)-3
               ntodo=nvals-(nloop-1)*4
               do 10 i=nloop,1,-1
-                ierr=ieg2cray(7,ntodo,i2vals(i),0,i2vals(fpixel),1,' ')
+C                ierr=ieg2cray(7,ntodo,i2vals(i),0,i2vals(fpixel),1,' ')
+                ierr=0
                 fpixel=fpixel-4
                 ntodo=4
 10            continue
@@ -1781,7 +1791,8 @@ C           have to work backwards, so as to not overwrite the input data
             fpixel = (nloop*2)-1
             ntodo=nvals-(nloop-1)*2
             do 10 i=nloop,1,-1
-                ierr=ieg2cray(1,ntodo,i4vals(i),0,i4vals(fpixel),1,' ')
+C                ierr=ieg2cray(1,ntodo,i4vals(i),0,i4vals(fpixel),1,' ')
+                ierr=0
                 fpixel=fpixel-2
                 ntodo=2
 10          continue
@@ -1835,7 +1846,8 @@ C           have to work backwards, so as to not overwrite the input data
             fpixel = (nloop*2)-1
             ntodo=nvals-(nloop-1)*2
             do 10 i=nloop,1,-1
-                ierr=ieg2cray(2,ntodo,r4vals(i),0,r4vals(fpixel),1,' ')
+C                ierr=ieg2cray(2,ntodo,r4vals(i),0,r4vals(fpixel),1,' ')
+                ierr=0
                 fpixel=fpixel-2
                 ntodo=2
 10          continue
@@ -1892,7 +1904,8 @@ C           have to work backwards, so as to not overwrite the input data
             fpixel = (nloop*2)-1
             ntodo=nvals-(nloop-1)*2
             do 10 i=nloop,1,-1
-                ierr=ieg2cray(3,ntodo,r8vals(i),0,r8vals(fpixel),1,' ')
+C                ierr=ieg2cray(3,ntodo,r8vals(i),0,r8vals(fpixel),1,' ')
+                ierr=0
                 fpixel=fpixel-2
                 ntodo=2
 10          continue
