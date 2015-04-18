@@ -1,4 +1,4 @@
-
+include ../../makefile.defs
 # 
 OPTIONS = -fbounds-check
 BIN = ../lib
@@ -12,28 +12,28 @@ all:	MAGmean MAGname MAGnew MAGrelativ MAGsort MAGsort2 MAGvariab \
 	mv $(BINARIES) $(BIN)
 
 MAGmean:  MAGmean.f
-	 g77 $(OPTIONS) -o MAGmean MAGmean.f
+	 $(g77) $(OPTIONS) -o MAGmean MAGmean.f
 
 MAGname:    MAGname.f
-	 g77 $(OPTIONS) -o MAGname MAGname.f
+	 $(g77) $(OPTIONS) -o MAGname MAGname.f
 
 MAGnew:  MAGnew.f
-	    g77 $(OPTIONS) -o MAGnew MAGnew.f
+	    $(g77) $(OPTIONS) -o MAGnew MAGnew.f
 
 MAGrelativ:  MAGrelativ.f
-	    g77 $(OPTIONS) -o MAGrelativ MAGrelativ.f
+	    $(g77) $(OPTIONS) -o MAGrelativ MAGrelativ.f
 
 MAGsort:  MAGsort.f
-	    g77 $(OPTIONS) -o MAGsort MAGsort.f
+	    $(g77) $(OPTIONS) -o MAGsort MAGsort.f
 
 MAGsort2:  MAGsort2.f
-	    g77 $(OPTIONS) -o MAGsort2 MAGsort2.f
+	    $(g77) $(OPTIONS) -o MAGsort2 MAGsort2.f
 
 MAGvariab:  MAGvariab.f
-	    g77 $(OPTIONS) -o MAGvariab MAGvariab.f
+	    $(g77) $(OPTIONS) -o MAGvariab MAGvariab.f
 
 scattername:  scattername.f
-	    g77 $(OPTIONS) -o scattername scattername.f
+	    $(g77) $(OPTIONS) -o scattername scattername.f
 
 clean:
 	rm $(BIN)/*

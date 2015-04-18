@@ -49,6 +49,10 @@ static char sccsid[] = "@(#)fsplit.c	5.5 (Berkeley) 3/12/91";
 #include <sys/types.h>
 #include <sys/stat.h>
 
+// the following is needed for linux
+#include <string.h>
+#include <stdlib.h>
+
 /*
  *	usage:		fsplit [-e efile] ... [file]
  *
@@ -140,7 +144,7 @@ char **argv;
 	ofp = fopen(x, "w");
 	nflag = 0;
 	rv = 0;
-	while (getline() > 0) {
+	while (getline2() > 0) {
 		rv = 1;
 		fprintf(ofp, "%s", buf);
 		if (lend())		/* look for an 'end' statement */
@@ -229,7 +233,7 @@ int letters;
 	}
 }
 
-getline()
+getline2()
 {
 	register char *ptr;
 

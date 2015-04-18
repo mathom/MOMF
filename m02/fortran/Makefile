@@ -1,8 +1,8 @@
-
+include ../../makefile.defs
 # 
 OPTIONS = -fbounds-check
-LIB = /opt/fitsio/fitsio/libfitsio.a
-#LIB = ../../fitsio/libfitsio.a
+#LIB = /opt/fitsio/fitsio/libfitsio.a
+LIB = ../../fitsio/libfitsio.a
 BIN = ../lib
 BINARIES = maggen imtest
 SOURCES = maggen.f imtest.f
@@ -11,10 +11,10 @@ all:	maggen imtest
 	mv $(BINARIES) $(BIN)
 
 maggen:	maggen.f
-	g77 $(OPTIONS) -o maggen maggen.f $(LIB)
+	$(g77) $(OPTIONS) -o maggen maggen.f $(LIB)
 
 imtest:	imtest.f
-	g77 $(OPTIONS) -o imtest imtest.f $(LIB)
+	$(g77) $(OPTIONS) -o imtest imtest.f $(LIB)
 
 clean:
 	rm $(BIN)/*

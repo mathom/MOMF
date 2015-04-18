@@ -3,6 +3,8 @@
 # Makefile to build the FITSIO library (libfitsio.a) on most UNIX systems
 #
 
+include ../makefile.defs
+
 SHELL = /bin/sh
 
 #*****************************************************************************
@@ -24,7 +26,7 @@ SYSPEC=fitslinx
 #       default:                           FC=f77
 #       Cray supercomputers:               FC=cf77
 #
-FC=f77
+FC=$(g77)
 #
 # 3. DEFINE COMPILER FLAGS:
 #--------------------------
@@ -34,31 +36,32 @@ FC=f77
 #       IBM AIX xlf Fortran:               FFLAGS= -O -u -qcharlen=2880
 #       HP-UX series:                      FFLAGS= -O -u +E5 +U77 
 #
-FFLAGS=-32
+FFLAGS=-O -u
 #
 # 4. DEFINE RANLIB (some machines don't use RANLIB so set it equal to 'touch')
 #------------------
 #       default:                           RANLIB=ranlib
 #       SUN Solaris, CRAY, SGI, HP:        RANLIB=touch
 #
-RANLIB=touch
+RANLIB=ranlib
 #
 #*****************************************************************************
 
-all:		stand_alone clean
+all:		stand_alone cleansplit
 
 stand_alone:	libfitsio.a
 
 libfitsio.a:	
+		gcc fsplit.c -o fsplit
 		@mkdir split.$$$$; \
 		cp fitsio.f split.$$$$; \
 		cp fitsfort.f split.$$$$; \
 		cp $(SYSPEC).f split.$$$$; \
 		echo "fitsio: splitting source files in temporary directory"; \
 		cd split.$$$$ ; \
-		fsplit fitsio.f > /dev/null; \
-		fsplit fitsfort.f > /dev/null; \
-		fsplit $(SYSPEC).f > /dev/null; \
+		../fsplit fitsio.f > /dev/null; \
+		../fsplit fitsfort.f > /dev/null; \
+		../fsplit $(SYSPEC).f > /dev/null; \
 		rm -f fitsio.f; \
 		rm -f fitsfort.f; \
 		rm -f $(SYSPEC).f; \
@@ -70,6 +73,9 @@ libfitsio.a:
 
 install: 	stand_alone
 
-clean:
+cleansplit:
 		rm -rf split.*
+
+clean:
+		rm fsplit libfitsio.a
 
