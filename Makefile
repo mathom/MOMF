@@ -12,4 +12,4 @@ fitsiolib: fitsio/Makefile
 clean: 
 	@for each in $(DIRS); do $(MAKE) -C $$each $@ ; done
 	@rm -f *~ core *.o
-	@$(MAKE) -C fitsio distclean
+	@$(MAKE) -C fitsio clean

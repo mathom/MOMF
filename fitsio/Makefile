@@ -74,7 +74,7 @@ libfitsio.a:
 install: 	stand_alone
 
 cleansplit:
-		echo rm -rf split.*
+		rm -rf split.*
 
 clean:
 		rm -rf fsplit libfitsio.a split.*
