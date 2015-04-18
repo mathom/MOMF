@@ -1,0 +1,7 @@
+160                NAXIS1/COLUMNS (1- )
+160                NAXIS2/ROWS    (1- )
+2                  BYTES PER PIXEL (FIXED)
+0                  BIAS/COL/MIN  (0 IF NO BIAS-SCAN)
+0                       /COL/MAX  (0 IF NO BIAS-SCAN)
+0                  BIAS/ROW/MIN  (0 IF NO BIAS-SCAN)
+0                      /ROW/MAX  (0 IF NO BIAS-SCAN)

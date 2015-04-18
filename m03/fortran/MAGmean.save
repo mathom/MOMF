@@ -1,0 +1,97 @@
+       program MOMF
+c
+c
+c      MAGmean.f
+c
+c      Hans Kjeldsen - MOMF version 3.0
+c      Aarhus University 1994 - Denmark
+c      07.02.1994
+c
+
+       dimension PHOT(1:5000,1:7),XMEAN(1:5000,1:7),YMEAN(1:5000,1:7)
+       character*60 name
+ 
+       open(10,file='starfile',status='old')
+       open(32,file='stat.V',status='old')
+       open(33,file='image.mean',status='unknown')
+ 
+       n=1
+ 
+       do 4 i=1,5000
+
+          XMEAN(i,2)=0.0
+          XMEAN(i,3)=0.0
+          XMEAN(i,4)=0.0
+          XMEAN(i,5)=0.0
+          XMEAN(i,6)=0.0
+          XMEAN(i,7)=0.0
+      
+          YMEAN(i,2)=0.0
+          YMEAN(i,3)=0.0
+          YMEAN(i,4)=0.0
+          YMEAN(i,5)=0.0
+          YMEAN(i,6)=0.0
+          YMEAN(i,7)=0.0
+ 
+4      continue
+      
+10     continue
+ 
+          read(10,'(a60)',end=200)name
+          open(11,file=name,status='old')
+ 
+          read(32,*)x,v2,v3,v4,v5,v6,v7
+c         write(6,666)n,' ',name
+666          format(i10,a3,a60)
+ 
+          ni=1     
+ 
+15        continue
+
+             read(11,*,end=16) (PHOT(ni,j),j=1,7)
+             XMEAN(ni,2)=XMEAN(ni,2)+PHOT(ni,2)*v2
+             XMEAN(ni,3)=XMEAN(ni,3)+PHOT(ni,3)*v3
+             XMEAN(ni,4)=XMEAN(ni,4)+PHOT(ni,4)*v4
+             XMEAN(ni,5)=XMEAN(ni,5)+PHOT(ni,5)*v5
+             XMEAN(ni,6)=XMEAN(ni,6)+PHOT(ni,6)*v6
+             XMEAN(ni,7)=XMEAN(ni,7)+PHOT(ni,7)*v7
+             YMEAN(ni,2)=YMEAN(ni,2)+v2
+             YMEAN(ni,3)=YMEAN(ni,3)+v3
+             YMEAN(ni,4)=YMEAN(ni,4)+v4
+             YMEAN(ni,5)=YMEAN(ni,5)+v5
+             YMEAN(ni,6)=YMEAN(ni,6)+v6
+             YMEAN(ni,7)=YMEAN(ni,7)+v7
+             ni=ni+1
+ 
+          go to 15
+ 
+16        continue
+c         write(6,666)n,' ','   ...all magnitudes calculated'
+        
+          close(11)
+ 
+          n=n+1
+ 
+       go to 10
+ 
+200    continue
+ 
+       n=ni-1
+ 
+       do 210 ni=1,n,1
+          X2=XMEAN(ni,2)/YMEAN(ni,2)
+          X3=XMEAN(ni,3)/YMEAN(ni,3)
+          X4=XMEAN(ni,4)/YMEAN(ni,4)
+          X5=XMEAN(ni,5)/YMEAN(ni,5)
+          X6=XMEAN(ni,6)/YMEAN(ni,6)
+          X7=XMEAN(ni,7)/YMEAN(ni,7)
+          write(33,777)ni,X2,X3,X4,X5,X6,X7
+c         write(6,777)ni,X2,X3,X4,X5,X6,X7
+777          format(i8,6f11.5)
+210    continue
+ 
+       close(10)
+       close(32)
+       close(33)
+ 
+       end

@@ -1,0 +1,29 @@
+#
+#
+#
+echo ' '
+echo '*******************************'
+echo '  MOMF.find:'
+echo '  Multi Object Multi Frame'
+echo '*******************************'
+echo ' '
+
+rm -f coomin
+$1/m01/lib/MOMFname
+if ($?MOMF_GRAD) then
+  echo "Running gradfind"
+  $1/m01/lib/gradfind
+  mv maxfind.coo MOMFfind.coo
+else
+  echo "Running MOMFfind"
+  $1/m01/lib/MOMFfind
+endif
+echo 'You can now edit the coordinate file, default by use of {vi}'
+$1/m01/lib/SLP
+if ($?EDITOR) then 
+ $EDITOR MOMFfind.coo
+else
+ vi MOMFfind.coo
+endif
+sort +6n MOMFfind.coo > find.coo
+$1/m01/lib/Dchange

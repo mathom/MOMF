@@ -1,0 +1,1448 @@
+        Summary of Changes to FITSIO Subroutine Library
+
+Version 5.03  1 Aug 1997
+
+ New Subroutines:
+
+ - added new routine to modify the size of an existing primary
+   array or image extension: ftrsim.
+
+ - added 2 new routines, ffpunt and ffgunt to write/read the
+   physical units of a keyword value.  These routines use a local
+   FITS convention for storing the units in square brackets
+   following the '/' comment field separator, as in:
+   VELOCITY=                   12 / [km/s] orbit speed 
+   The testprog.f program was modified to test these
+   new routines.
+
+ - added support for null-valued keywords, e.g., keywords that
+   have no defined value.  These keywords have an equal sign and
+   space in columns 9-10, but have not value string.  Example:
+     KEYNAME =                      / null-valued keyword
+   Support for this feature required the following changes:
+       - added 4 new routines:  ftpkyu, ftikyu, ftmkyu, ftukyu to
+         write, insert, modify, or update an undefined keyword
+       - modified ftpsvc to return a null value string without error
+       - modified ftc2[ilrd] to return error 204 in this case
+       - modified ftgkn[sljed] to continue reading additional keywords
+         even if one or more keywords have undefined values.
+
+ Enhancements:
+
+ - made modifications to support both D_float and G_float double 
+   precision formats on Alpha VMS systems.  Two new C routines
+   that do the IEEE<->VMS format conversions are now included
+   in the vmsieee.c file.  These are equivalent to the vmsieee.mar
+   macro routines which are used on VAX/VMS systems.
+
+ - various changes to better support the NAG F90 compiler:
+    - rewrote the FTSWI4 and FTSWI8 routines, to avoid equivalence statements
+    - modified some declaration statements in FTPBYT, FTOPNF, FTPCLU
+
+ - modified ftgknj, ftgkne, and ftgknd so that they perform automatic
+   datatype conversion of the keyword value if necessary.  Previously,
+   ftgknj would return an error if the value was a floating point number.
+
+ Bug Fixes:
+
+ - changed ftopnx to explicitly initialize the heapsz, theap, tfield,
+   and rowlen common block parameters = 0.  Otherwise, a previously
+   assigned values could be remembered when opening a new file.
+
+ - added check that status is not greater than zero at the beginning
+   of ftphtb and ftphbn.  Otherwise, the input status value could
+   get reset = 201, which is confusing. 
+
+ - added test in ftclxs to see that ibuff != 0 before using
+   it as an array index.  This caused a random piece of memory
+   to be reset, which, depending on the compiler, could cause
+   unpredictable behavior.
+
+ - fixed a SPP coding error in the ftgcbo and ftpcbo in
+   fitsspp.x (this only affected the SPP/IRAF version of fitsio).
+
+ - the call to ftarch in fitsspp.x and fitssppvms.x was incorrect.
+   The ftarch routine now takes 3 arguments, not 1 as in the past.
+
+ - fixed bug in the FTPPNx family of routines; needed to
+   call ftrdef if the file structure was not already defined.
+
+ - fixed small bug in the time calculation routine in the test
+   program speedf90.f which is used to test the performance of fitsio
+   with Fortran-90 compilers.  This bug would not significantly 
+   affect the timing estimates.
+
+ - modified the error message when reading rows of ASCII tables to
+   print out the correct number of the row that caused the error.
+
+ - ftbini would crash with 'divide by zero' when reading FITS binary tables
+   that have TFORMn = '0A'
+
+Version 5.02  11 April 1997
+
+ - when writing floating point values to an integer datatype image
+   or column, the values are now always rounded to the nearest integer
+   rather than truncated.
+
+ - improved the efficiency when reading or writing FITS ASCII tables
+
+ - fixed a number of minor coding problems, to make the code
+   compatible with the Linux NAG 90 compiler.
+
+ - modified a few routines where the formal character string argument was
+   declared with a fixed length; changed the declaration to character*(*)
+
+ - modified ftopen so if blocksize = 0, then FITSIO will use the standard
+   FITS blocks size of 2880 bytes (same as if blocksize = 1).
+
+ - modified ftgcpr so that it simply returns without error if
+   number of elements to read or write = 0.
+
+ - modified SPP routines in fitsspp.x and fitssppvms.x to make
+   them compatible with version 5.xx of fitsio.f.
+
+Version 5.01   8 April 1997
+
+ - modified all the routines so that no error status is returned if
+   'nelems' = 0 when reading or writing elements to an image or table.
+   This change restores the same behavior as was in the 4.xx versions
+   of FITSIO.
+
+Version 5.00  21 March 1997
+
+ - ported the code to make it Fortran-90 compliant.  Added the fitsf90.f
+   file which is designed to work with most Fortran-90 compilers.
+
+ - modified ftdelt to make it possible to delete a keyword that
+   has an illegal value format (e.g., a string without a closing quote)
+
+ - when creating a binary table with variable length vector columns, if the
+   calling routine does not specify a value for the maximum length of
+   the vector (e.g.,  TFORMn = '1PE(400)')  then fitsio will automatically
+   calculate the maximum value and append it to the TFORM value
+   when the binary table is first closed.
+
+ - when writing variable length array columns, it is no longer
+   necessary to keep track of the number of bytes that have been
+   written to the heap and then update the PCOUNT keyword before
+   closing the HDU.  FITSIO now does this automatically.
+
+ - added new subroutine, ffphps, which provides a simpler way to
+   define a new primary array or image extension.
+
+ - modified ftpsvc to remove statement which copied overlapping
+   strings (worked with most compilers but violated strict Fortran-77)
+
+ - modified ftcopy so that it returns an error if the output 
+   HDU is not empty
+
+ - modified ftgrec so that it simply moves to the beginning
+   of the header if the input keyword number = 0
+
+ - added support for wildcards ('*', '?', and '#') in the input
+   keyword name when reading, modifying, or deleting keywords.
+
+ - improved efficiency when reading and writing binary tables
+   by combining several subroutine calls into a single routine.
+
+ - no longer need the ftmoff routine, so it was deleted.
+
+ - increased the read and write buffer size from 400 to 32000 bytes
+   to improve efficiency
+
+ - when reading or writing more than one FITS block in a FITS file
+   the low-level routines will read or write the data directly
+   in the FITS file, by-passing the internal buffers.  This 
+   improves the efficiency of reading or writing FITS images.
+
+ - simplified the code that manages the internal buffers and
+   eliminated the 'age' array.
+
+ - took all the routines that are only used with Fortran I/O
+   (i.e., not used in the IRAF/SPP version) and put them
+   in a separate file called 'fitsfort.f'.  This then left only
+   a handfull of routines in the various machine-specific
+   source files (e.g., fitssun.f, fitsdec.f, etc.).  This
+   should make it easier, and clearer, when porting FITSIO
+   to a new platform.
+
+ - simplified the code by removing support for machines with
+   non-ASCII character sets (i.e. IBM mainframes).  The previous
+   version of FITSIO can still be used on this machine if
+   needed.
+
+ - in fttrec, when testing that a keyword record contains only valid
+   printable ascii characters, added a check for any characters
+   greater than ASCII(126) (the tilda character).
+
+ - the comment string in many of the required FITS keywords was
+   slightly modified, so that FITSIO is identical to CFITSIO
+
+ - changed format of E and D values in ASCII tables so that there
+   is always a leading digit, and always use E instead of D
+   (e.g., 1.234E+02 instead of .1234D+03).  This is mainly a
+   cosmetic change so that the FITS files produced by FITSIO
+   will be identical to those produced by CFITSIO.
+
+ - When writing double precision value keywords, ftpkyd no longer
+   leaves a leading space if the value is positive (for the sign).
+
+ - Leading spaces have been removed from the keyword value
+   in ftpkyt ('triple precision keywords).
+
+ - fixed bug in ftdhdu which forgot to decrement the starting
+   address of all subsequent HDUs after deleting an HDU.
+
+ - small change to ftbnfm to return the width of a unit value
+   for all datatypes, not just ASCII columns 
+
+ - improved the logic in ftpkys for writing string keyword
+   values which have a literal appostrophy in the last character.
+
+ - modified the gttime routine in the fitslinx.f version to
+   be compatible with ftools.
+
+ - changed configure and configure.in to support HP systems
+
+ - initialized the vlen variable in ftd2e.
+
+ - removed parameter statement from ftupch which caused problems
+   with the g77 compiler.
+
+ - made cosmetic changes to all the machine-specific files, to
+   make them as identical as possible.
+
+Version 4.14  13 August 1996
+
+ - changed ftiimg to simply write the primary array if it doesn't
+   exist yet.
+
+ - in fitslinx.f, changed the parameter statements which caused
+   problems with the g77 compiler.
+
+ - initialize the lenval variable in the ftdkey subroutine.
+
+ - ftclos now checks that the unit number is valid and is
+   actually associated with an open file, before attempting
+   to close the file.
+
+ - in the IRAF/SPP version, fitsspp.x now calls ieesnanr
+   and ieesnand to set the return value for any NaN (Not a Number) 
+   floating point values that are read.  On a VAX, the returned NaN value
+   must have all bits set (equivalent to integer -1) in order
+   for the NaNs to be detected correctly by FITSIO.
+
+Version 4.13  22 March 1996
+
+ - added new routine to force data internal buffer to be flushed to
+   the disk file: ftflus
+
+ - added internal check to prevent the required keywords from
+   being written more than once (i.e., with ftphpr, ftphtb, and ftphbn).
+
+ - modified ftgcl[bijed] so that it reads at most 32000 bytes at
+   a time from the disk file.  The read operation involves copying
+   the bytes to a long string variable, and some compilers limit
+   the string length to 32767 characters.
+
+Version 4.12  28 Feb 1996
+
+ - added new routine to insert multiple columns in a table: fticls.
+
+Version 4.11  8 Feb 1996
+
+ - bug fixed in ftrwup that sometimes caused a program crash when
+   calling ftdrow to delete rows in a table.
+
+ - in ftptbb and ftptbs, added code to call ftrdef if the table structure
+   is not yet defined.
+
+Version 4.10  1 Dec 1995
+
+ - fixed 2 pattern matching bugs in ftcmps, which compares 2 strings
+
+Version 4.09  21 Nov 1995
+
+ - modified ftprec so that the pointer to the next keyword in the header
+   is not reset if a new keyword is appended to the header.  This returns
+   fitsio to the way it behaved before version 4.00.
+
+ - added the blocksize=10000 parameter to the Fortran Open statement
+   in the VAX/VMS version of FITSIO (fitsvax.f).  This produces speed
+   improvements when writing large blocks of data (e.g., a primary array)
+   by 150% - 300%.  The amount of improvement seems to depend on the
+   particular disk being written to, amoung other things.  Increasing
+   the blocksize any further showed no measurable inprovements.
+   Adding the equivalent blocksize parameter to the other versions
+   of FITSIO (DEC alphas, various Unix machines) showed no effect
+   regardless of how big or small the blocksize.
+
+Version 4.08  3 Oct 1995
+
+ - fixed bug in ftiimg which caused fitsio to be off by 8 bytes
+   in calculating the start of the image data.
+
+ - cleaned up the datatype declarations in cfitsio.h (V1.30) so that 
+   they match the actual datatype.  Previously, type INT was used in 
+   many places where in fact the variable was a SHORT, or LOGICAL.
+
+Version 4.07  7 Sept 1995
+
+ - fixed small bug that caused ftibin to fail when inserting an ASCII
+   column to an existing binary table.  It was not calculating the
+   new column width correctly.
+
+Version 4.06  18 Aug 1995
+
+ - fixed ftdelt so that it does not complain about deleting a 
+   non-valid FITS file and write messages to the error stack.
+
+ - modified ftchdu, ftfrcl and ftflsh so that they all proceed 
+   regardless of the input status value.  This ensures that any
+   buffers associated with a closed or deleted file are completely cleared.
+   This would cause problems if a file was deleted incompletely then
+   a new FITS file was opened using the same Fortran unit number.
+
+ - modified ftxmsg so that if the error message stack is full then
+   the oldest message will be thrown out to make room for the new message.
+   Thus the 50 most recent messages will always be kept.
+
+Version 4.05  2 Aug 1995
+
+ - modified the IRAF fitsspp.x file to be more efficient in how it
+   writes and initializes new FITS 2880-byte records.  In tests on
+   a SUN IPC, this new version is 1.6 times faster when writing large
+   contiguous blocks of data (e.g., in a primary array).  These changes
+   have little or no effect when writing colums of data to a table
+   where the elements are not contiguous bytes in the FITS file.
+
+ - added new fitsmacls.f system dependent file for use with Macintosh
+   PowerMac using the Language Systems Fortran compiler.
+
+ - fixed another bug in ftfrcl in recalculating tstart for the
+   open column descriptors
+
+ - modified ftbini so that it will accept binary tables with NAXIS1=0
+   NAXIS2=1.  There was no problem with tables which have NAXIS1 > 0 and
+   NAXIS2=0.
+
+Version 4.04  12 July 1995
+
+ - fixed bug in ftfrcl which was not reseting pointers to columns.  If more
+   than one FITS file is opened simultaneously, then this bug could
+   cause it to read or write data incorrectly.
+ 
+Version 4.03  6 July 1995
+
+ - modified fitsspp.x to work corectly on VMS systems.  The new file
+   is called fitssppvms.x and the mkpkg file was modified to use this. (4.031)
+ - fixed bug in fsgcks in the SPP version (in fitssppb.x)
+ - improved ftitab and ftibin so that they do not count any blank TUNIT
+   keywords when calculating the size of the header.
+ - after trying to move to a nonexistent extension, ftmahd now
+   will correctly reset itself to point to the previous CHDU.
+ - fixed bug in test1.f; TUNIT strings needed to be initialized to blanks
+ - modified fsdtyp and fsgkyn in fitssppb.x, to correctly handle character
+   string variables.
+
+Version 4.02 20 June 1995
+
+ New Subroutines:
+   ftiimg - insert an image extension into an existing FITS file
+   ftitab - insert an ASCI table extension into an existing FITS file
+   ftibin - insert a binary table extension into an existing FITS file
+   ftghad - return the starting byte address of the CHDU and the next HDU
+   ftucrd - update a header card if it exists otherwise append it
+   ftdhdu - delete the CHDU in the FITS file
+   fticol - insert columns in an existing table
+   ftdcol - delete columns in an existing table.
+   ftucks - update the CHECKSUM keyword value
+   ftesum - encode a checksum value
+   ftdsum - decode a checksum value
+
+ Enhancements:
+
+ - slightly modified the checksum algorithms, to conform to the
+   lastest draft of the proposal  (V4.02)
+
+ - eliminated the restriction on the number of columns in a table (512)
+   so FITSIO can now read or write tables with the maximum 999 columns.
+   The 'nf' parameter was changed so that it represents the total maximum
+   number of opened columns, summed over all open HDUs.  
+   This also lowered the overall memory usage by FITSIO.
+
+ - increased the values of 'ne' (max number of extensions) to 200 and
+   'nb'  (max number of open FITS files) to 20.
+
+ - removed the block data routines, which proved to be non-portable.
+
+ - modified ftpi2 and ftgi2 (and the other similar routines) to call
+   ftpchb and ftgchb, repectively, instead of ftpbyt and ftgbyt in the
+   fitssun.for and fitsdec.for files.  This removes one layer of subroutine
+   calls to improve speed.
+
+ - the ftgcl_ family of routines now do not call the
+   ftr4r4 (or similar) routine if a) there is no scaling and b) there
+   is no implicit datatype conversion and c) there is no checking for 
+   nulls.  This improves the I/O performance in these commonly occuring
+   cases.
+
+ - deleted obsolete routines from fitsio.for: 
+     ftpccs, ftgvcs,  ftgfcs - used by the old C wrapper routines
+     ftgss[bijed] - replaced by ftgsv[] and ftgsf[] routines
+
+ - moved ftmbyt and ftmoff from fitsio.for into the machine-specific
+   file; Iraf needs a completely different algorithm.
+
+ - overhauled the internal memory management routines, so FITSIO
+   now can cache the 20 most recent FITS blocks (2880 bytes) that have 
+   been read or written.  This replaces the previous algorithem which
+   only cached one block per FITS file. The can greatly improve
+   the I/O efficiency in certain cases.
+
+ - modified ftchdu so that it always rewrites the END card if there
+   is write access to the HDU to ensure that the header has a valid
+   format
+
+ - wrote new routine to reset the column name buffer whenever the
+   CHDU changes.  FITSIO now buffers all the column names of the
+   most recently opened table.
+
+ - ftrdef is now automatically called whenever one moves to a new HDU
+   or whenever the HDU is closed.  This eliminates the need to 
+   call ftpdef, ftadef, ftbdef, or ftddef.
+
+ - If one starts to write data to an HDU after the header has been 
+   written, but before calling ftrdef, then FITSIO will now automatically
+   call ftref for you.  It is normally no longer necessary for application
+   programs to call ftrdef, ftpdef, ftadef, or ftbdef.  
+
+ - made small changes to the way that ftpscal, ftpnul, etc, are used
+   to override the default values defined by the header keywords.
+   It is no longer necessary to call ftpdef first.  This could conceivably 
+   affect some software that writes scaled data into FITS files.
+
+ - when writing to a primary array, FITSIO now ignores error if you try
+   to write beyond the declared size of the primary array.  Thus you
+   may initiall declare the array size to be zero, then fill in the
+   correct NAXISn values just before closing the HDU.
+
+ - simplified the Makefile procedure, and tested it on a wide variety
+   of platforms.
+
+ Porting changes:
+ - deleted the fitsaix.f version, for the IBM AIX.  Users of this 
+   machine should use the fitssun.f version and specify
+   the -qcharlen=2880 Fortran compiler flag.
+
+ - changed the fitspc version to support the Microsoft compilers that
+   don't allow a character variable to be passed to routines expecting
+   an integer argument.
+
+ - added versions for the Linux operating systems on PCs, (fitslinx.f)
+   and for the NeXT and Silicon Graphics workstations (fitsnxsg.f).
+
+ - changed the file type of all the fortran source files from .for to .f
+   which is what is now used on the majority machines.
+
+ Bug fixes:
+
+ - fixed ftirec so that it can insert a new record at the end of
+   the header (the same as calling ftprec) instead of giving
+   a status = 203 error. (V4.02)
+
+ - ftirow would cause a subsequent 309 or 312 error, if the insertion
+   resylted in a new 2880 by block to be appended to the file, and if the
+   HDU was the last one in the file.
+
+ - modified ftr4vx and ftr8vx in fitsalphavms.for to set underflows 
+   to zero.  These values would otherwise cause an error under VMS.
+
+ - fixed small bug in ftpclx which caused a 107 error when trying to
+   move back to the start of the bit sequence.
+
+ - fixed bug in ftbini and ftbdef which forgot to reset the null string value
+   to ASCII 0;  the previously defined value from an ASCII table was
+   not being reset.  This caused null values in ASCII columns of binary
+   tables to be written incorrectly. 
+
+ - ftbini would crash with divide by zero error if a TNULLn = 0
+   keyword is (illegally) given for an ASCII column in a binary table.
+   Put in test in ftgbtp to ignore this keyword if it is present.
+
+Version 3.71  30 Jan 1995
+
+ -  fixed bug in ftgphx: it was truncating the tscale and tzero values to 
+    20 characters.
+
+ -  fixed the fcgtbb and fcptbb macro definitions in cfitsio.h to 
+    pass an integer array argument, rather than a string array.
+
+ -  added new subroutines (FTIREC, FTDREC, FTGHPS) to insert or delete header
+    keywords at a specified position in the header.
+
+ -  fixed bug in fitsmac version (was testing for wrong compid value)
+    and restored support for 12 open FITS files (instead of the previous 6)
+
+ -  modified the string matching algorithm used by ftgcno and ftgcnn so that
+    it is more self-consistent. 
+
+ -  changed the returned error code from 102 to 101 in all the 
+    machine dependent routines, when the input common block buffer
+    is not in the range (ussually 1 to 12).
+
+ -  F2C didn't like a string concatination in ftgcnn.  Fixed it by 
+    declaring and using a temporary string variable.
+
+Version 3.7  29 Dec 1994
+
+ -  changed the way string-valued keywords are written so that leading
+    spaces in the keyword value are preserved.  The leading spaces 
+    used to be stripped off before the value was written to the FITS file.
+
+ -  modified fttkey to issue error if keyword name contains embedded
+    space characters.
+
+ -  now distribute the cfitsio.h header file with fitsio.  The old
+    cfitsio wrapper routines will no longer be supported.
+
+ -  initialized tstat in ftibl.
+
+ -  check initial value of 'status' in the FTI1R4 and similar routines
+
+ -  modified ftgcno and added ftgcnn and ftcmps to allow wildcards and
+    column numbers to be used when searching for a column name
+
+ -  fixed bug in ftgext that would cause FITSIO to append an extraneous
+    record to a file opened with write access if one tried to move to a
+    non-existent extension. (as opposed to appending a new extension which
+    works fine).
+
+ -  modified the 3 user-callable checksum related routines.  Now, FTPCKS
+    writes or updates the checksum keywords, and FTVCKS verifies that
+    the computed checksum matchs the keywords.  FTGCKS just returns
+    the computed encoded checksum strings.
+
+ -  added 4 subroutines to help calculate celestial coordinates
+
+ -  added ftgtcl and ftasfm subroutines to help parse the TFORM keyword
+
+ -  changed fts2c so that it preserves leading spaces when writing string 
+    keyword values 
+
+ -  modified the checksum algorithms to encode the datasum directly, 
+    and not its complement. (3.623)
+
+ -  fixed ftgkys and ftgnst to correctly handle test for presence of
+    the long string keyword convention if the string value is all blank.
+    (3.623)
+
+ -  fixed editting oversight in fti4i2 that caused I*2 overflow on
+    old SUN compilers. (3.622)
+
+ -  added equivalence statements to ftgclj and ftpclj to force the buffer
+    variable to be aligned on a double word (R*8) boundary.  This alignment
+    is required by the HP PA-RISC compiler. (3.622)
+
+Version 3.62 3 Nov 1994
+
+ -  added the ftpmsg routine to the fitsio documentation
+
+ -  fixed ftpini, ftaini, ftbini, to correctly count number of blank
+    keywords prior to the END keyword.  These blank spaces are reused when
+    writing new keywords to the header (this feature was broken by
+    a previous modification to these routines).
+
+ -  restored the old algorithm for inserting a single block in a FITS
+    header.  The new algorithm introduced in 3.61 caused problems for
+    some programs.
+
+ -  added new subroutines ftcxi, ftcxj, and ftcxd to read consecutive
+    bits from an 'X' or 'B' binary table column as an unsigned integer.
+
+ -  work around compiler bug that complained of I*2 overflows in fti1i2,
+    fti2i2, ftr4i2, and ftr8i2.   Similar bug affecting I*4 variables
+    was fixed in fti1i4, fti2i4, fti4i4, ftr4i4, ftr8i4.
+
+Version 3.61  26 Oct 1994
+
+ -  added new routines to insert (FTIROW) or delete (FTDROW) rows in
+    an existing table.
+
+ -  added check that columns in ASCII tables fit within the specified
+    ASCII table width (status=236)
+
+ -  cleaned up confusion over use of nxheap and scount when computing the
+    size of the heap storage area in binary tables
+
+ -  removed unnecessary calls to ftas2c and ftc2as in all but the FITSIBM.FOR
+    versions.  These routines convert between ASCII and the native characters.
+
+ -  added dummy ftc2as and ftas2c routines to fitsspp.x
+
+ -  fixed bug in ftaini that caused it to reject ASCII tables with
+    NAXIS1 = 0 and NAXIS2 = 0.
+
+Version 3.6  18 Oct 1994
+
+ -  FITSIO can now be run under Linux on an IBM PC. The ICHAR function
+    operates differently under Linux (returns values in range -128 to +127)
+    so all return values from ICHAR must be checked and converted to
+    the range 0-255.  See the FITSLINUX.DOC file for further information.
+
+ -  modified all the datatype conversion routines to explicitly check
+    that the output value does not exceed the range of the output 
+    data type.  An error status = 412 is returned if any overflows occur.
+
+ -  modified ftgext and ftrhdu to do more rigorous check of any extraneous
+    bytes after the last extension before assuming they are just fill
+    bytes (as is sometimes produced with VAX files if record size = 512).
+    Now, if the first 80 bytes of the extension are filled with 
+    NULs (0), LFs (10), or blanks (32) then this is interpreted as the
+    end of the FITS file.  Any other characters in the record cause
+    an error status 252 = unrecognized FITS record.
+
+ -  new family of routines added to update keywords (FTUKYx)
+ -  added missing fsfious routine to fitssppb.x (SPP interface)
+
+Version 3.51   15 Sept 1994
+
+ -  fixed bug writing header fill values in ftwend (3.512)
+ -  fixed bug that was writing 'CONTINUE= ' instead of 'CONTINUE  ' on
+    continued keywords (3.511)
+ -  changed the internal convention used for long string keywords
+ -  added the ftpkls and ftplsw routines
+ -  added support for all IEEE special values when reading floating point data
+ -  improved various sections of the fitsio User's Guide (fitsio.doc)
+
+Version 3.504  22 August 1994
+
+ -  fixed a bug introduced in the previous version that caused it not to
+    recognize the type of extension if trailing blanks were present
+    in the XTENSION keyword value.
+
+ -  fixed the problem if user specified GROUP=0 in calls to the FTGSVx or
+    FTGSFx family of routines. Now treated as if GROUP = 1.
+
+ -  fixed bug introduced in v3.500 that caused ftcopy to make files too big.
+
+ -  added checks so that error status = 312 instead of 311 is returned
+    when an invalid TFORM values is found in a binary table.
+
+Version 3.5  July 1994
+
+ -  added new subroutine to prepend an integer onto a root keyword (FTNKEY)
+ -  explicitly write the fill bytes at the end of each data unit. On the
+    VAX, if the output FITS file had a block size < 2880, then these
+    fill bytes were not being initialized correctly.
+ -  new error message stack has been added
+ -  modified the vmsieee macro routines to hard-code the use of -1 as 
+    the NaN value.  No longer need to call the NaN initialization 
+    routine in subroutine ftopnx.
+ -  added new subroutines ftchfl and ftcdfl to check that the fill
+    bytes at the end of the header unit and end of the data unit
+    respectively are legal (must be blanks or zeros, depending on
+    the type of data unit).
+ -  added new subroutine to close and delete a FITS file: ftdelt
+
+Version 3.4xx (micro releases)
+
+ -  Bug fix: ftcopy was not saving the type of extension that was
+    copied to the output file, which could cause ftmahd to return
+    the incorrect type of extension if called immediately after
+    the call to ftcopy. (v3.415)
+
+ -  Bug fix: ftgrec would crash with a Fortran internal IO error if
+    the requested header record did not exist (V3.415)
+
+ -  Bug fix: if one tried to move with ftmahd or ftmrhd to the extension 
+    that was already being pointed to, the routine simply exited, without
+    computing the correct value for then the hdutype parameter (it was 
+    simply left equal to its input value).  This bug was just introduced
+    in version 3.414.  (V3.415)
+
+ -  added support for scaling (with TSCAL/TZERO) of complex (C) and
+    double complex (M) binary table columns. (V3.414)
+
+ -  added ftgiou and ftfiou to allocate or deallocate i/o unit numbers
+    (V3.414)
+
+ -  added checks to ftcopy and ftcpdt to ensure input and output logical
+    unit numbers are not the same. (V3.414)
+
+ -  added checks if the allowed maximumn number of open FITS files is
+    exceeded in the Lahey version.  These checks are already present
+    in the other versions. (V3.414)
+
+ -  modified ftchdu so that it does not try to rewrite the END keyword
+    if it already exists.  Previously this would cause an error if
+    a readonly access file was opened with write access (V3.414)
+
+ -  modified ftmahd so that it just returns if the file is already 
+    positioned to the correct extension. (V3.414)
+
+ -  worked around bug in the DEC Alpha VMS compiler that caused
+    it to fail on an internal read of the smallest possible negative
+    integer ('-2147483648').  An additional check for this case was added 
+    to the ftc2ii subroutine. (V3.414)
+
+ -  ported FITSIO to run on CRAY supercomputers. Use fitscray.f file. 
+    This involved major changes to the fitsio.for file, especially to
+    the fttrnn and fttdnn routines for testing for NaNs, and for the
+    routines that read and write to bit (X) columns.  Previously
+    these routines assumed that Integer*2 and Integer variables are
+    2 and 4 bytes long, respectively, but on the Cray all integer types
+    are 8 bytes long. (V3.413)
+
+ -  corrected the size of the common blocks in ftzero in the Amiga and
+    IBM AIX versions of FITSIO. (V3.413)
+
+ -  moved the code that detects what type of machine it is running on
+    from fttrnn and fttdnn into the ftopnx routine.  Also took out
+    some related code from the block data routine. (V3.413)
+
+ -  worked around 'feature' of the SUN compiler which returned a NaN
+    ieee value when doing an internal read of certain ASCII letters.
+    This affected ftgthd. (V3.412)
+
+ -  fixed bug in ftgi2b that caused an end-of-file error (107) when reading
+    from a byte (B) column if the binary table ended exactly on a FITS
+    2880-byte block boundary. (V4.411)
+
+  - improved the error message reporting if the required TFORM keyword(s)
+    are not present in a FITS header. (V3.411)
+
+  - in the ftpclm routine (write values to a double-precision-complex binary
+    table column) the 'bytpix' variable was not initialized to 8 as it should
+    have been. (v3.411)
+
+  - several fixes that were made to the VAX VMS version in V3.40 should have
+    also been made to the Dec Alpha VMS version.  To correct this problem
+    the ftclsx and ftgcbf subroutines in fitsalphavms.for were replaced with
+    the versions of these subroutines in the fitsvax.for file. (v3.410)
+
+  - added support for the HP 9000.  See the FITSHP.DOC file for
+    instructions on modifying the fitssun.for file to run on the HP. (V3.409)
+
+  - the HP 9000 compiler crashed in ftpcld (and presumably also in ftpclm)
+    because an integer*4 array was being passed as a R*8 array.  Fixed
+    this by equivalencing a R*8 array to the I*4 array. (V3.409)
+
+  - the STATUS variable in ftgnst was not initialized which could cause
+    it to incorrectly read long string keyword values.  Fixed by adding
+    status as a new subroutine parameter. (V3.409)
+
+  - initialized the 'unknow' variable in ftgphx.  This problem only
+    showed up on a Silicon Graphics machine. (V3.409)
+
+  - changed fttkey and fttrec to remove the statements like: 
+    parameter (ivalue = ichar(cvalue)) 
+    which are not compatible with the Lahey PC compiler. (V3.409)
+
+  - added status=210 error to flag when the END keyword was not found
+    in ftpini, ftaini, and ftbini (V3.408)
+
+  - modified ftgthd to better distinquish between renaming an existing
+    keyword or deleting a keyword (V3.408)
+
+  - added the patch from fitsvms.for to fitsalphavms.for so that the
+    same FITS file can be opened more than once. (V3.408)
+
+  - modified ftadef and ftgbyx so that the FITS blocks in an ASCII TABLE
+    are always initialize to ASCII spaces (not ASCII NULs). (V3.407)
+
+  - added new subroutine ftrdef which re-reads the keywords in the CHDU
+    to redetermine the structure and size of the CHDU.  Normally called
+    after updating the actual number of rows (NAXIS2 keyword) in a TABLE.
+    (V3.407)
+
+  - modified ftopen, ftrhdu, ftpini, and ftgphx so that FITSIO does not
+    simply quit if it finds an unknown type of extension.  Instead, it
+    will correctly compute the size of the extension, allowing the
+    program to skip over it if necessary.  FITSIO treats the extension
+    as a grouped data extension, but this may not be correct, so in general
+    the data in the unknown extension are un-interpretable by FITSIO. (V3.406)
+
+  - fixed bug in ftgtdm which would fail after the first time it was called
+    because the LAST variable was not initialized. (V3.406)
+
+  - removed assumptions about the location of closing quote characters
+    in the XTENSION and TFORM keywords.  Previously, the ftaini and ftbini
+    routines would return an error status if the closing quote character
+    was not in column 20 (for XTENSION) or before column 30 (for TFORM). 
+    (V3.405)
+  
+  - removed test PRINT statements that were mistakenly left in the V3.404
+    version of ftpclj (V3.405)
+
+  - ftpini would not always correctly open a GROUP format FITS file. 
+    It could get confused about the end-of-header position and incorrectly
+    calculate the starting location of the group data arrays. (V3.405)
+
+  - modified ftphpr so that it writes 4 COMMENT keywords which point to 
+    the source documents which define the FITS format. (V3.404)
+
+  - added the FTGTDM and FTPTDM subroutines to read or write the TDIMnnn
+    keywords. (V3.404)
+
+  - increased the internal buffer used to store ASCII table column null
+    values from 8 to 16 characters.  Only the first 16 characters of the
+    TNULL value will be used when testing each element in the column (V3.404)
+
+  - added range checking for HDU number (status=301) and column number (status
+    = 302), number of array axes (status = 320), the size of each
+    axis (status = 323), and the order of the starting and ending pixels
+    in a range specification (status = 321) (V3.404)
+
+  - prevent user from setting BSCALE = 0 or TSCAL = 0 in ftpscl or fttscl
+    (error status=322) (V3.404)
+
+  - ftpkys would sometimes report an error when writing a blank string value.
+    Fixed by setting strlen = 1 in this case. (V3.403)
+
+  - Fixed bug in ftgcno which failed to find the table column if the
+    column name was more than 14 characters long. (V3.402)
+
+  - Made a minor efficiency improvement to the ftpi1b subroutine. (V3.401)
+
+Version 3.4 - 11 August 1993
+
+  NEW SUBROUTINES
+
+  - FTCPDT to copy the data from an input FITS file to an output FITS file.
+
+  - FTMNAM to modify the name of an existing keyword in a FITS header.
+
+  - FTGHDN to return the number of the current header data unit which is
+    open in the FITS file.
+
+  - FTGKYT and FTPKYT to read or write keyword values in 'triple precision'
+    F28.16 format.  
+
+  - FTIKY[EDFGJLS] family of subroutines to insert a new keyword at a
+    user-specified location in an existing FITS header.
+
+  - FTGSV[BIJED] and FTGSF[BIJED] families of subroutines to read a
+    subset of a multidimensional primary array or subset of an N-dimensional
+    vector array column in a binary table.  These routines replace
+    the functionality of the previous FTGSS[BIJED] routines.
+
+  ENHANCEMENTS:
+
+  - modifed ftgtgd, which parses a template header string, to support
+    a user syntax for modifying the name of an existing keyword.
+    The systax is "- oldname newname".  This new feature may be used
+    in conjunction with the new ftmnam subroutine which actually
+    modifies the keyword name in the FITS file.
+
+  - Implemented a local convention for reading and writing character
+    string keywords which are too long to fit in a single
+    keyword record (max. length = 68 characters for a single keyword).
+    This convention continues the keyword value string on subsequent
+    keywords which have a blank keyword name.  The FITSIO routines
+    which read or write a string keyword (e.g., ftgkys, ftpkys, ftikys)
+    recognize this convention and will automatically read or write
+    long string values.  The only impact of this on application
+    programs is that the string value parameter in these subroutines
+    must be dimensioned long enough in the calling program to 
+    be able to contain the entire string.  When reading a long
+    string from the header, the value will be truncated to the 
+    dimensioned length of the string parameter if it is not
+    long enough to contain the entire string.   Note that most other
+    FITS reading software does not recognize this local convention and
+    will simply interpret the continuation keywords as comments.
+    Thus, users are cautioned about using this convention in FITS
+    files that will be read by FITS readers that do not use
+    the FITSIO subroutines, or which must be transported into
+    other data analysis systems which may not support such long
+    string values.
+
+  - the TEST1.FOR and TEST2.FOR programs to test the functionality
+    of FITSIO were enhanced to test some new features (e.g., long
+    string keyword values) and to do more robust verification that
+    the values it reads from the test FITS file are correct.
+
+  - in order to support the port to the IBM AIX Fortran compiler,
+    which limits character stings to 500 characters or less, 4 of
+    the subroutines in FITSIO which had larger string variables
+    had to be modified.  These routines were: FTBFIL, FTCOPY, FTIBLK,
+    and FTPCLU.  The new IBM AIX machine-dependent subroutines are
+    in the file FITSAIX.FOR. 
+
+  - made a small modification to the ftopnx subroutine in the fitsdec.for
+    machine specific file to work around a bug in the Fortran compiler
+    on the DEC Alpha running OSF/1.  Now fitsdec.for can be used for
+    both DECstations and the Alpha OSF/1.
+
+  - improved the efficiency of writing a keyword (ftprec) by about 20%
+    on SUNs and DECstations by changing the way string comparisons
+    are performed in fttrec, fttkey, and ftupch.  This had no effect
+    on the performance on a VAX/VMS.
+
+  - modified ftphis and ftpcom which write a HISTORY keyword or COMMENT
+    keyword, repectively, so that they will write multiple keywords 
+    if the output value string is too long to fit in
+    a single keyword (70 characters max.).
+
+  - Added more information to the fitsnext.doc and fitsiris.doc files.
+
+  - Improved the efficiency of the ftgcno routine to find the column number
+    corresponding to an input column name (TTYPEnnn).  
+
+  - added the HDUTYP parameter to the common block to keep track of
+    the type of the CHDU (i.e., image, ASCII table, or binary table).
+
+  - added another subroutine argument to the internal ftgcl[bijedcm] family
+    of routines to define an element skip factor during the read
+    operation.  For example, if skip=2, then every other element
+    in the column will be read.  Setting skip=1 causes these routines
+    to act exactly as before.  These subroutines are not called
+    directly by the user, so the change in the number of arguments
+    should be transparent to application programs.
+
+  - modified ftgext so that it returns an end-of-file error (107) if it finds
+    an unrecognizable type of extention (status 252).  While this is not 
+    strictly correct, since there may be FITS special records in the FITS 
+    file, in most cases this is the proper interpretation of the 252 error.
+    This situation only occurrs on VAXs when dealing with
+    FITS files with non 2880-byte record lengths (ususally 512 bytes),
+    where the trailing fill bytes in the last record make it difficult to
+    determine the logical end of the FITS file. 
+
+  - modified ftopen and ftinit to ignore leading blanks in the filenames.
+
+  - improved the efficiency of the FTGKNx routines, which read
+    a sequence of header keywords.  Now these routines will read all
+    the keywords in one pass through the header;  previously, it could
+    have taken one read pass through the header for each individual
+    keyword.  This will also speed up other routines which call the
+    ftgcnx routines, such as FTGHBN and FTGHTB.
+
+  - added error checking to detect attempts to move to an illegal HDU
+    number, (either negative, or greater than the internal buffer size,
+    which is currently set to support up to 128 extensions in a FITS file).
+
+  BUG FIXES
+
+  - The routines to read a complex or double complex table column
+    (ftgclc and ftgclm) were not correctly detecting null values.
+
+  - FITSIO was requiring that all keywords except COMMENT, HISTORY, END
+    and a blank keyword have an '= ' in columns 9-10 of the header and
+    would return a status error = 210 if not.
+    The NOST FITS standard in fact does not require this and any keyword
+    which does not have an '= ' in columns 9-10 should simply be
+    interpreted the same as a COMMENT keyword.  The ftprsv and ftpsvc
+    subroutines in FITSIO were modified to conform to this convention.
+
+  - FTGACL was returning a value of tbcol which was 1 less than the correct
+    value.
+
+  - FTCLOS was attempting to move 1 byte beyond the end of file, 
+    which could have caused problems in the VAX/VMS version of
+    FITSIO.  This was changed so that it moves just to the last byte.
+
+  - When a BINTABLE extension follows an ASCII TABLE extension in a FITS 
+    file, and the ASCII TABLE extension has a TNULLn keyword for an ASCII 
+    column (TFORM = 'A'), then that null string value would also
+    be recognized when reading the BINTABLE extension.  The FTBINI
+    subroutine was modified to explicitly reset the CNULL parameters
+    in FITSIO which store the null string value so that this would
+    not happen.
+
+  - In FTPINI, the pointer to the end of the header is temporarily set
+    to a large number (100 MBytes) but some actual FITS file are bigger
+    than this.  The number was raised to 2 GBytes, which is close to
+    the maximum value for a 32 bit integer.  If it becomes necessary
+    to support FITS files larger than this, then some portions of
+    FITSIO will need to be redesigned.
+
+  - In FTGPHX, the call to FTGKYN could return a status=203 error
+    in cases where the FITS header has many blank keywords just prior
+    to the END keyword.  This condition is now treated as a normal
+    end-of-header flag and the status is internally reset to zero.
+
+  - The VAX/VMS Fortran compiler reports a different file record length
+    with the INQUIRE statement depending on whether the file is already
+    open or not.   This caused FITSIO to abort if one tried to open
+    the same FITS file more than once with different unit numbers.
+    The ftopnx subroutine in FITSVAX.FOR was modified to compensate 
+    for this difference.
+
+  - When creating a FITS file on the VAX with non 2880-byte file
+    record lengths (usually 512 byte records), in some cases the trailing
+    records at the end of the data unit containing fill would not
+    get written.  The FTCLSX routine in FITSVAX.FOR was modified to
+    force it to flush these fill records to the disk file before it
+    is closed.  The previous attempted fix to this problem introduced
+    with version 3.31 was incorrect and has been deleted from
+    the ftgcbf subroutine in the fitsvax.for file.
+
+  - the automatic data scaling feature would not work correctly if the
+    TSCALn or TZEROn keyword values were more than 20 characters long
+    due to buffer being dimensioned too small in ftbini and ftgbtp.
+
+  - In the ftgi2b, ftgi4b, ftgr4b and ftgr8b routines, an unnecessary
+    attempt to move to a new position in the input FITS file was 
+    sometimes causing spurious end-of-file (107) errors.   A corresponding
+    error in the ftpi2b, ftpi4b, ftpr4b and ftpr8b routines would
+    sometimes cause a extra empty block to be appended to the end of
+    the output FITS file.  This problem could also lead to inefficient
+    I/O operations if the extra 'move-to' moved into the next block
+    in the FITS file, causing the current block to be flushed to disk
+    and the next block to be read into the internal buffer.
+
+  - In the fitsnext.doc file, the order of the arguments in the idate
+    function in the Oasys Green Hill Fortran compiler was incorrect.
+    The correct order should be:
+         call idate(iarray(2), iarray(1), iarray(3))
+
+  - The routine which tests whether a double precision number has a value
+    equal to a NaN (Not-a-Number), was incorrect on DECstations and IBM PCs
+    because the bytes are swapped relative to what one would get on a 
+    SUN machine.  The FTTDNN subroutine was modified to correct this.
+
+Version 3.31 - 2 February 1993
+
+  ENHANCEMENTS:
+
+  - the I/O efficiency has been substantially improved in the special case
+    where one is reading or writing to a binary table containing a single
+    column.  The I/O of the whole (or part) of the column is now 
+    done with a single read or write statement, whereas before it was done
+    one row at a time.
+
+  BUG FIXES:
+
+  - The ftpclu routine to set column elements to a null value worked incorrectly
+    in some cases.  The problem only occurred when nelements > 1, when the
+    binary table column has an integer datatype (I, or J), and when running
+    on a machine with byte-swapped numbers (as compared to the IEEE byte order).
+    This occurred because the same null value would be repeatly byte-swapped,
+    so every other null value would be incorrect.
+
+  - The VAX/VMS version of FITSIO was not correctly detecting an end-of-file
+    condition when the FITS file block size was not equal to 2880 bytes.
+    The ftgcbf subroutine in the fitsvax.for file was modified to fix this.
+
+  - In the IRAF/SPP version of FITSIO the IRAF system call that was used to
+    read character bytes from the FITS file was converting any null values (0)
+    into ASCII blanks (=32).  This system call was replaced by a local
+    subroutine which, as a side benefit, should improve the I/O performance
+    of the IRAF version of FITSIO.
+
+  - the subroutines which read or define the structure of a primary array
+    were confusing a FITS file with NAXIS1 = 0 with a 'random group' FITS
+    file.  The FTPINI and FTPDEF subroutines were modified to be able to
+    distinguish between these two cases by looking for the GROUPS = T
+    keyword  which must be present in 'random group' FITS files.
+
+  - the ftiblk routine, which attempts to insert more space for keywords
+    in a FITS header, was not recalculating the new end location of
+    the FITS file.  Thus, if one then attempted to append/create a new
+    FITS extension onto the end of the file, it would overwrite the 
+    last 2880-byte block in the file causing the file to be corrupted.
+
+  - when reading a variable length array in a binary table with the 
+    ftgcv_ or ftgcf_ subroutines, the starting position of the array
+    was incorrectly calculated if one did not start reading from the
+    first element in the array (i.e., if the felem argument was not
+    equal to 1).  This would result in incorrect values being returned.
+
+  - all the subroutines which return an array of logical null value flags
+    when reading data from a primary array (ftgpf[bijed]) or a binary table 
+    (ftgcf[bijed]) sometimes would not initialize the flag array values
+    to .false.  This would only happen when attempting to read from an integer
+    primary array or an integer column in a binary table where the BLANK
+    or TNULL keyword was not present in the FITS header.   Under this
+    circumstance, the FITSIO subroutine would simply return the null
+    value flag array without any change to the input values.  This could
+    lead to confusion if the calling program had not already initialized
+    the flag array values to .false.
+
+  - in FTPHBN, an internal character variable was truncating the user
+    specified TFORM values to only 8 characters.  The size of the
+    variable was increased to 40 characters to allow for longer TFORM strings.
+
+  - in FTCOPY, a spurious empty FITS block would be appended to the output
+    file when copying a primary array with NAXIS = 0.  
+
+Version 3.3 - 28 October 1992
+
+  ENHANCEMENTS:
+
+  - provided a version of FITSIO for running in the IRAF environment which
+    uses the low-level IRAF VOS calls to perform the FITS file I/O, rather
+    than using Fortran file I/O.  This version will work on any machine
+    on which IRAF has been installed.
+
+  - provided a version of FITSIO which runs on Macintosh computers.
+
+  - added checks to ensure that no control characters (ASCII values < 32)
+    are written into the value or comment strings in a header record.
+
+  - increased the limit on the number of FITS files that may be open at
+    one time from 6 to 12.  To save memory, the PC versions of FITSIO still
+    only support 3 open files.  See the FITSIO documentation on how users
+    may increase this limit, if desired.  
+
+  - to save on the amount of required computer memory, FITSIO no longer
+    supports reading or writing of FITS files which have a blocksize greater
+    than 2880 bytes.  This only affect users on VAX or IBM mainframe machines.
+    FITS files on these machines with a larger blocksize must first be
+    converted (e.g., see the VAX VMS CONVERT command) before they may be
+    read with FITSIO.
+
+  - made a small modification to ftgbnh and ftghbn to allow the maxfld
+    input argument to have a value = 0.  
+
+  - added checks to the ftopen and ftinit subroutines to ensure that the
+    input file name is not blank.
+
+  - modifed FTGCNO so that it now returns error status = 219 if the named
+    column is not found.  Previously this would have just returned 
+    column number = 0 and status = 0.
+
+  - split the FTCLOS subroutine into 2 subroutines: the top level FTCLOS 
+    subroutine (in FITSIO.FOR) now calls FTCLSX (in the machine dependent
+    file) to physically close the file.  This split is needed for the SPP
+    version, which doesn't call the Fortran CLOSE routine.
+
+  - modified ftgcls (subroutine which reads a text string field in a
+    binary table) so that it now checks to see if the returned string is null
+    terminated (i.e, contains an ASCII 0 character) and if so, replaces the 
+    null character and any following characters in the returned string with
+    blanks (ASCII 32). 
+
+  - added support in the FTCOPY subroutine for copying the primary array
+    to an image extension, or vise-versa.
+
+  - added new error status code = 220 if the SIMPLE keyword does not have
+    a value of T or F
+
+  BUG FIXES:
+
+  - put in a work around for an obscure bug in the SUN fortran compiler
+    which would cause extra bytes to be written to other binary files
+    if they were written just after a new fits file is opened with ftopen.
+    Added a few lines of code to the ftgbyx subroutine in the fitssun.for file
+    to solve the problem.
+
+  - removed a restriction in the ftphbn subroutine which would not permit
+    a binary table to be created with zero number of rows.  This is legal
+    in FITS and should be supported.
+
+  - while adding the ftghpr routine in version 3.21, the ftgprh was not
+    implemented correctly.  The problem was that a zero dimension value
+    was being passed to the ftgphx subroutine.
+
+  - improved error checking in FTGEXT and FTRHDU so that it behaves better if
+    it fails to recognize the next extension in the FITS file.  Previously
+    this sort of failure left several internal parameters in an undefined
+    state which could cause FITSIO to append a lot of garbage to the end
+    of the FITS file.   It also now returns a more informative error status
+    number (252).
+
+  - improved the error checking in the FTCLOS subroutine, so that it
+    will not mistakenly create huge output files under some circumstances.
+
+Version 3.21 - 8 July 1992
+
+  NEW SUBROUTINES:
+
+  - FTGTHD: parse an ASCII template string and reformat it into a 
+    80-character string suitable for appending to a FITS header.
+
+  - added support for Lahey Fortran on IBM PCs with the new source code
+    file called fitslahy.for.  Lehey Fortran is slightly different from
+    Microsoft Fortran, so separate source code is required.
+
+  - replaced the routines to read and write the required header keywords
+    (FTGPRH, FTPPRH, FTGTBH, FTPTBH, FTGBNH, FTPBNH) with a set of very
+    similar subroutines called (FTGHPR, FTPHPR, FTGHTB, FTPHTB, FTGHBN, 
+    and FTPHBN.  (All the old subroutines still exist in the FITSIO
+    library for compatibility with existing software).  FTGHPR, FTGHTB and 
+    FTGHBN each have one additional argument to define the size of the other
+    array parameters; without this argument there was a danger that
+    FITSIO could overflow the bounds of the input arrays.  The names
+    of the other subroutines were changed for consistency.
+
+  - FTGCRD: Get the 80-character header record for the named keyword
+
+  - FTMCRD: Modify (overwrite) the 80-character header record for the named
+    keyword in the CHU.  This can be used to overwrite the name of the keyword
+    as well as it's value and comment fields.
+
+  ENHANCEMENTS:
+
+  - improved sections of the fitsio.doc documentation file
+
+  - changed the way FITSIO handles arrays of ASCII strings (as opposed
+    to simple arrays of characters) so that it conforms to the
+    proposed FITS binary table standard.  The FITS standard states that
+    the TFORM keyword value for any ASCII field in a binary table will
+    have the form 'rA' where r is an integer indicating the width of
+    the field (in characters).  The standard also states that "additional
+    characters may follow the datatype code character but they are not
+    defined in this document".  FITSIO will interpret an integer in
+    this position as indicating the length of a fixed length strings within
+    the field.  For example, '32A8' indicates that the field is a total
+    of 32 characters wide and is composed of 4 8-character strings.
+
+  - rewrote the algorithms for testing for NaN values using ANSI standard
+    Fortran-77 so that the fttrnn and fttdnn subroutines could be moved 
+    out of the machine specific source code file into the fitsio.for 
+    source code file.  This makes it easier to port the code to other
+    environments.
+
+  - modified ftpdat so that if the DATE keyword already exists then it
+    just modifies the value in-place, rather than creating a new keyword
+    record.  If the DATE keyword doesn't already exist then ftpdat will
+    append a new DATE keyword record to the end of the header.
+
+  - increased the legal range for the value of the Fortran logical unit
+    number from 1-99 to 1-199.  This range may not be supported by all
+    Fortran compilers.
+
+  - rewrote the FTGCX and FTPCLX subroutines to remove the machine spacific
+    code so that they could be processed by f2c.  Moved the subroutines into
+    the FITSIO.FOR file.
+
+  BUG FIXES:
+
+   - the subroutine which moves to a new extension in a FITS file (ftgext)
+     was not trapping the error if the user attempted to move to an
+     extension number less than 1.  This could cause FITSIO to 
+     attempt to move to a very large record number in the file, resulting in 
+     a huge FITS file on disk.  The subroutine now detects this error and
+     returns a status value of304.
+
+   - the INCRE variable was not  initialized in the ftpclb, ftpcle,
+     and ftpcld subroutines when writing to ASCII tables.  This caused 
+     problems on compilers that do not automatically initialize variables
+     to zero.
+
+   - the DESCRP variable in the FTGCL_ and FTPCL_ families of subroutines 
+     was not initialized when operating on ASCII tables.  This caused 
+     problems on compilers that do not automatically initialize variables
+     to zero.
+
+   - The BYTPIX variable in FTGCLC and FTGCLM was not set prior to use
+     when attempting to read Complex or Double Complex datatypes from
+     variable length array columns.  
+
+   - FTGCCL (get information about a binary table column) was not returning
+     the datatype parameter correctly for ASCII character columns.  This
+     was fixed so that it now returns datatype = 'An' where 'n' is an
+     integer representing the width of the ASCII field.
+
+   - changed the format statement when reading numeric values from an
+     ASCII table to include 'BN' so that any trailing blanks in the field
+     are ignored.  Thus an integer column contain the string ' 123 ' is 
+     read as the value 123, not 1230.   This was only a problem with
+     the VAX compiler which by default used 'BZ' format rather than 'BN'.
+
+   - when reading group format data files there was a bug in FTPINI which caused
+     FITSIO to always read from the first group regardless of which group was
+     actually specified.
+
+   - in order to force the BLOCK DATA routine to be loaded from an object
+     library, one should declare it as EXTERNAL in at least one of the
+     subroutines which is always loaded and that uses the common block FT0001.
+     Thus an EXTERNAL FTBKDT statement has been added to the ftopnx subroutine.
+
+   - FTOPNX was modified so that the internal buffers were not allocated
+     if it is not possible to open the FITS file.  Previously, all the
+     buffers could get allocated if there were file open failures.
+
+Version 3.20 - 30 March 1992
+
+   NEW SUBROUTINES:
+
+  - FTGCX and FTPCLX:  subroutines to read or write individual bits in
+    a bit (TFORM = 'X') or byte (TFORM = 'B') column in a binary table.
+
+  - FTGSSx and FTPSSx:  subroutines to read or write arbitary contiguous
+    rectangular subsets of pixels in an n-dimensional FITS image.
+
+  - FTMCOM:  subroutine to modify the comment field of an existing keyword 
+    without changing the value field.
+
+  - FTPDAT:  subroutine to write the DATE keyword to the header
+    containing the current system clock date in 'dd/mm/yy' format
+
+  - FTGERR:  subroutine to return the text error message string
+    associated with a given FITSIO error status number.
+
+  - FTCOPY:  subroutine to copy an entire extension from an input FITS file
+    to an output FITS file.  This routine also allows space to be reserved
+    for more keywords to be added at a later time.
+
+  - FTGTBB and FTPTBB:  subroutines to read or write consecutive
+    strings of bytes in an ASCII or binary table.  These are mainly of
+    use when copying part of a table from one FITS file to another FITS
+    file.  
+
+  ENHANCEMENTS:
+
+  - added the capability to dynamically expand the size of the extension
+    header if addition space is needed to write a new keyword.  Now the 
+    ftprec subroutine will attempt to insert a new empty FITS record 
+    (2880 bytes = room for 36 80-byte header records) if there is no more 
+    room in the header.  This new functionality lets an arbitrary number of 
+    new header keywords to be added to an existing FITS file.
+
+  - added support for the proposed IMAGE FITS extension.  Now the subroutines
+    that read or write the primary array can also read or write an
+    IMAGE extension.
+
+  - improved the algorithm to swap bytes in the VAX and DEC versions.
+    The new algorithm is about 6 times faster on the VAX and dramatically
+    decreases the amount of CPU time needed to read or write a FITS file.
+    The byte swapping algorithm in the PC version was not changed, since
+    the original algorithm is faster on the PC.
+
+  - in the VAX version, replaced the algorithm to convert between VAX
+    floating point format and IEEE format.  Used a set of MACRO subroutines
+    copied from IRAF.  These routines now properly handle special values
+    like NaN, Infinity, etc. which the previous version didn't handle.
+
+  - rewrote FTDKEY which deletes an existing header keyword record so that
+    it now will reclaim the header space by moving all the following 
+    keywords up one slot in the header.
+
+  - changed the FTMKY family of subroutines which modify an existing keyword
+    record to provide the option to only modify the value field, leaving
+    the comment string unchanged
+
+  - modified the way bit array columns (TFORM = 'nX')  are handled.  Now
+    the bit columns are interpreted identically as byte arrays (TFORM = 'nB').
+    Thus if TFORM = '13X', then this is interpreted the same as TFORM = '2B'.
+    (Recall that the FITS definition requires that a bit array column be
+    padded out to a multiple of 8 bits bytes).
+
+  - added code at the beginning of the ftpini and ftbini subroutines to check
+    that the input value of STATUS is not  greater than zero.
+
+  - reduced the code size by decreasing the common blocks size from 
+    28800 bytes to 2880 bytes for those machines which do not support 
+    intrinsic file record sizes (SUN, PC and DEC  versions).  The VAX and 
+    IBM mainframe versions still require the larger commom block to support 
+    FITS record blocking factors of 10.
+
+  - reduced the code size by using a large character array in a common block 
+    for large local character variables in individual subroutines, rather 
+    than declaring new character arrays in each subroutine.  This should 
+    reduce the size of the executable task by a few thousand bytes 
+    (only significant for the IBM PC version).
+
+   BUG FIXES:
+
+  - modified ftgbyx to remove the test of the machine-specific error code 
+    returned by the fortran read statement.  Now, FITSIO simply assumes that
+    the end of file was found whenever a non-zero error status is
+    returned.  This specifically fixed a problem reported by users of
+    DECstation compilers which caused a status=108 error to be returned.
+
+  - improved the logic in the ftgatp and ftgbtp subroutines so that they
+    do not get confused by keyword names which have the same root as
+    a reserved ROOTn keyword, but which do not have the integer 
+    suffix appended to the root name.  This sometimes caused a 407
+    status error to be returned.
+
+  - added a BLOCK DATA program unit to initialize the buffer pointers
+    to zero (in the common block FT0001).   Most compilers do this
+    automatically, but this addition is needed to support the ones that don't.
+
+  - fixed bug in FTGCFL which caused it to return erroneous logical
+    array values.
+
+  - fixed bug which caused error status 203 to be returned when calling
+    FTGPRH if there were any blank header records just before the END record.
+
+  - improved the logic when checking for a COMMENT or HISTORY record to
+    permit these keywords to have an '=' in column 9.
+
+  - fixed bug in FTCLOS which would return a 112 error status when closing
+    a file which was opened with readonly status.
+
+ -  fixed bug which would sometimes append an empty FITS record onto the
+    end of a FITS file which was opened with READONLY status, when trying
+    to read beyond the end of file.
+
+  - fixed bug which caused status error = 312 when trying to read a
+    primary array with BITPIX = 8.  The internal datatype code was
+    being set incorrectly by ftpini.
+
+Version 3.10  November 1991
+
+  - added FITSIBM.FOR set of routines for running fitsio on IBM mainframes
+
+  - rewrote the fttrnn and fttdnn functions to remove calls to the
+    logical AND function.  This should make the code more portable and
+    make it easier to convert the code to C with the 'f2c' program.
+
+  - fixed ftgcno so that it returns COLNUM=0 if the named column is
+    not found.
+
+  - changed all the scaling variables (BSCALE and BZERO, TSCAL and TZERO)
+    from REAL to DOUBLE PRECISION to provide increased accuracy when scaling.
+    This affects the FTPSCL, FTTSCL, FTGACL and FTGBCL subroutines which
+    now have double precision arguments.
+
+  - fixed bug in FTBDEF and FTADEF:  they were not correctly storing the 
+    number of fields in the table, which would cause FTTSCAL to exit
+    with error number 303.
+
+  - fixed bug in FTPKYD which caused the keyword value to be omitted if
+    the number of specified decimal places was less than 9.
+
+  - modified the comment strings that are generated by ftpprh and ftpbnh
+    for some of the header keywords.
+
+  - made a few minor efficiency improvements to ftpcbf
+
+  - made major efficiency improvements to ftpcl_ and ftgcl_ families of routines
+
+  - fixed bug in ftgcf_ routines which had caused incorrect flag values
+    to be returned.
+
+  - added ftpcom and ftphis routines to write COMMENT and HISTORY header
+    records, respectively
+  
+  - changed format for writing a keyword value in exponential notation
+    so one more significant digit may be expressed, instead of the
+    useless leading zero (e.g.  1.2345E+03 instead of 0.1234E+04)
+
+  - changed the way single quote characters are handled in
+    string keyword values, to conform to the FITS standard.  A single
+    quote character is now represented by 2 successive single quote 
+    characters.
+
+  - changed the way grouped data is handled so that there is no longer
+    any upper limit to the number of groups which FITSIO can handle.
+    Previously, FITSIO could only read files with less than 256 groups.
+
+  - fixed bug when writing long strings (>80 characters) to an ASCII column
+    of an ASCII or binary table.
+
+  - added error checking to return an error if FELEM is greater than the
+    column repeat count when reading or writing to a table. 
+
+  - fixed bug when reading or writing to an ASCII column if the string
+    variable was shorter than the width of the field.
+
+  - fixed bug in ftbdef in which the PCOUNT and NROW parameters were
+    reversed.
+
+  - added support for variable length arrays in binary tables.
+    This included adding three new subroutines: FTPTHP, FTGDES, and FTPDES.
+
+Version 3.01 - 27 September 1991
+
+  -fixed small bug in ftbini which caused the subscripts of TNULL to be
+   out of bounds.  Would cause a problem if the binary table has more than
+   6 columns.
+
+Version 3.00 - released 12 September 1991
+

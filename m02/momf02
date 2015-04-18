@@ -1,0 +1,12 @@
+#
+#
+#
+rm -f offset.SUM offset.PHOT basic.PHOT fwhm.SUM input.IMAGE
+echo $MOMF_DATAIN/$1 > input.IMAGE
+echo $MOMF_DATAOUT/$1 >> input.IMAGE
+nice $MOMF_PROG/m02/lib/maggen
+rm -f fwhm.SUM dummy input.IMAGE
+cat basic.PHOT >> $MOMF_DATAOUT/basic.PHOT
+cat offset.PHOT >> $MOMF_DATAOUT/offset.PHOT
+cat offset.SUM >> $MOMF_DATAOUT/offset.SUM
+rm -f basic.PHOT offset.PHOT offset.SUM

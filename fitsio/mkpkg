@@ -1,0 +1,93 @@
+# FITSIO -- Update the FITSIO library.
+#  this is a sample IRAF mkfile which builds a local version of the FITSIO lib.
+
+$call update
+$exit
+
+update:
+	$update   libfitsio.a
+	;
+
+updateftools:
+	#Extra target for building fitsio inside the FTOOLS distribution
+        $checkout libfitsio.a  ftoolsbin$
+        $update   libfitsio.a
+        $checkin  libfitsio.a  ftoolsbin$
+	;
+
+fitsio:
+	# Update fitsio subdirectory if new version of fitsio.f installed.
+	$ifolder (fitsio/ftopen.f, fitsio.f)
+	    $echo "update fitsio subdirectory..."
+            $iffile(fitsio/ftopen.f)
+                !\rm fitsio/*.f
+                $delete fitsio/mkpkg
+            $else
+                !mkdir fitsio
+            $endif
+
+            $copy fitsio.f fitsio/fitsio.f
+            !cd fitsio ; fsplit fitsio.f
+            $delete fitsio/fitsio.f
+
+            !echo '$checkout libfitsio.a ../libfitsio.a' > fitsio/mkpkg
+            !echo '$update   libfitsio.a' >> fitsio/mkpkg
+            !echo '$checkin libfitsio.a ../libfitsio.a' >> fitsio/mkpkg
+            !echo ' ' >> fitsio/mkpkg
+            !echo 'libfitsio.a:' >> fitsio/mkpkg
+
+            !cd fitsio ; ls -1 ft*.f | sed 's/^/ /g' >> mkpkg
+            !echo '  ;' >> fitsio/mkpkg
+	$endif
+	;
+
+fitssppb:
+	# Update fitssppb subdirectory if new version of fitssppb.x installed.
+	$ifolder (fitssppb/fsvers.f, fitssppb.x)
+	    $echo "update fitssppb subdirectory..."
+            $iffile(fitssppb/fsvers.f)
+                !\rm fitssppb/*.f
+                $delete fitssppb/mkpkg
+            $else
+                !mkdir fitssppb
+            $endif
+            
+	    $xc -f fitssppb.x
+            $copy fitssppb.f fitssppb/fitssppb.f
+	    $delete fitssppb.f
+            !cd fitssppb ; fsplit fitssppb.f
+            $delete fitssppb/fitssppb.f
+
+            !echo '$checkout libfitsio.a ../libfitsio.a' > fitssppb/mkpkg
+            !echo '$update   libfitsio.a' >> fitssppb/mkpkg
+            !echo '$checkin libfitsio.a ../libfitsio.a' >> fitssppb/mkpkg
+            !echo ' ' >> fitssppb/mkpkg
+            !echo 'libfitsio.a:' >> fitssppb/mkpkg
+
+            !cd fitssppb ; ls -1 fs*.f | sed 's/^/ /g' >> mkpkg
+            !echo '  ;' >> fitssppb/mkpkg
+
+	$endif
+	;
+
+libfitsio.a:
+	 $ifeq (hostid, unix)
+	    # Split the fitsio.f file into many small .f files for unix.
+	    $call fitsio
+ 	    @fitsio
+	    $call fitssppb
+	    @fitssppb
+	    fitsspp.x   	fitsspp.com
+	$else
+	    # simply compile the files on VMS systems.
+	    $iffile(fitsio.f)
+	    $else
+		# have to rename the source file so the compiler will find it
+		!rename fitsio.f fitsio.for
+	    $endif
+	    fitsio.f
+	    fitssppb.x
+	    fitssppvms.x	fitsspp.com
+	$endif
+
+	;

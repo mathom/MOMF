@@ -1,0 +1,14 @@
+#
+#
+#
+setenv EDITOR vi
+setenv ISFLAG 1
+$MOMF_PROG/m01/momf.COOR $MOMF_PROG
+rm -f Dcoo.coo Dstars2
+$MOMF_PROG/m01/momf.LARGE $MOMF_PROG
+$MOMF_PROG/m01/momf.SUM $MOMF_PROG
+setenv ISFLAG 0
+$MOMF_PROG/m01/momf.SCOO $MOMF_PROG
+rm -f input.OFF offset.SUM momfinp im.STAT fwhm.SUM
+rm -f factor.SUM coomin Dcoo.coo Dcoo.fit Dstars3 Dstars core
+rm -f imname find.coo

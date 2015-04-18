@@ -1,0 +1,11 @@
+512                NAXIS1/COLUMNS (1- )
+520                NAXIS2/ROWS    (1- )
+2                  BYTES PER PIXEL (FIXED)
+0                  BIAS/COL/MIN  (0 IF NO BIAS-SCAN)
+0                       /COL/MAX  (0 IF NO BIAS-SCAN)
+1                  BIAS/ROW/MIN  (0 IF NO BIAS-SCAN)
+8                      /ROW/MAX  (0 IF NO BIAS-SCAN)
+0                  RESCALING 0=no, 1 or -1=16bit->15bit, 2 or -2=shift to positive data
+		   <0 means input from FITS file
+800 800            REAL SIZE of IMAGE
+1 1		   CORNER OF SUBIMAGE TO PROCESS

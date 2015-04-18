@@ -1,0 +1,6 @@
+#
+#
+#
+echo $MOMF_DATAIN/$1 > input.IMAGE
+nice $MOMF_PROG/m02/lib/imtest
+rm -f input.IMAGE

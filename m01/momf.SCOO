@@ -1,0 +1,43 @@
+#
+#
+#
+echo ' '
+echo '*******************************'
+echo '  momf.SCOO'
+echo '  Multi Object Multi Frame'
+echo '*******************************'
+echo ' '
+echo ' Batch-mode version 3.0'
+echo '              1994'
+echo ' '
+rm -f coomin
+$1/m01/lib/Drename3
+$1/m01/lib/MOMFname2 < momfinp
+if ($?MOMF_GRAD) then
+  echo "Running gradfind"
+  $1/m01/lib/gradfind
+  mv maxfind.coo MOMFfind.coo
+else
+  echo "Running MOMFfind"
+  $1/m01/lib/MOMFfind
+endif
+echo 'You can now edit the coordinate file, if you want'
+$1/m01/lib/SLP
+if ($?EDITOR) then 
+ $EDITOR MOMFfind.coo
+else
+ vi MOMFfind.coo
+endif
+rm find.coo
+sort +6n MOMFfind.coo > find.coo
+$1/m01/lib/Dchange
+$1/m01/lib/Dcoor2
+rm -f PSFstars2
+sort -n +0.0 PSFstars > PSFstars2
+rm PSFstars
+$1/m01/lib/Dshow2
+rm PSFstars2
+$1/m01/lib/Dsort
+rm -f qqww
+sort -n +0.0 coor.SUM > qqww
+mv qqww coor.SUM

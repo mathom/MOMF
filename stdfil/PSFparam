@@ -1,0 +1,4 @@
+  17.0      ( PSF-radii outer-limit in pixels, e.g. 26.0 - for LARGE-arr )
+   0        ( Controlling PSF-residuals by core-description (1=yes, 0=no) )
+   0.5      ( exponent for core-scaling control of PSF-residual )
+   0        ( Do you want the empty.frame (1=yes, 0=no) )

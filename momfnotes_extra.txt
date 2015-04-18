@@ -1,0 +1,95 @@
+;32 0-32767
+$MOMF_PROG/m02/imtest02 lco00815.5_2.fts > temp.out
+994
+erom,row994,file='temp.out'
+plot,row994
+OK med FORMAT-3!
+
+;16 0-65535
+$MOMF_PROG/m02/imtest02 lco00815.5.fts > temp.out
+994
+erom,row994,file='temp.out'
+plot,row994
+BAD med FORMAT-3!
+
+$MOMF_PROG/m02/imtest02 lco00815.5.fts > temp.out
+994
+erom,row994,file='temp.out'
+plot,row994
+BAD med FORMAT-2! has just been added 16400 or so
+
+$MOMF_PROG/m02/imtest02 lco00815.5.fts > temp.out
+994
+erom,row994,file='temp.out'
+plot,row994
+OK med FORMAT-1! transforms 16bit->15bit by cutting the least
+significant bit
+
+
+;32 0-65534
+x=readfits('lco00815.5_2.fts',head)
+writefits,'lco00815.5_32.fts',2*x,head
+
+$MOMF_PROG/m02/imtest02 lco00815.5_32.fts > temp.out
+994
+erom,row994,file='temp.out'
+plot,row994
+OK med FORMAT-1!
+
+
+;-32 0-65534.
+x=readfits('lco00815.5_2.fts',head)
+writefits,'lco00815.5_32.fts',2.*x,head
+
+$MOMF_PROG/m02/imtest02 lco00815.5_32.fts > temp.out
+994
+erom,row994,file='temp.out'
+plot,row994
+OK med FORMAT-1!
+
+====================
+To conclude:
+Maggen.f (MOMF02) should be run with
+BITPIX    ADUrange  FORMAT
+  16       0-65534    -1
+  32       0-65534    -1
+  32       0-32767    -3
+ -32       0-65534    -1
+
+====================
+
+;Attempt with INTEGER*4 in imtest.f and rimage4.f, but no success
+;(and 3 not allowed)
+;-32 0-65534.
+x=readfits('lco00815.5_2.fts',head)
+writefits,'lco00815.5_32.fts',2.*x,head
+$MOMF_PROG/m02/imtest02 lco00815.5_32.fts > temp.out
+994
+BAD !
+
+====================
+;Attempt with INTEGER*2 and no BSCALE and BZERO keywords
+
+$MOMF_PROG/m02/imtest02 c7473.mt > temp.out
+994
+erom,row994,file='temp.out'
+plot,row994
+OK med FORMAT-3!
+
+=======================
+
+MOMF virker paa FITSfiler med flg. settings:                   
+BITPIX  BSCALE BZERO  ADUrange  FORMAT
+  16     1.0   32768  0-65534    -1   
+  16     no      no   0-32767    -3   
+  32     1.0     0.0  0-65534    -1
+  32     1.0     0.0  0-32767    -3
+ -32     1.0     0.0  0-65534    -1  
+ 
+Lige saa snart det er laest ind er dataene dog 0-32767 , og least
+significant bit er smidt vaek. Ved forespoergsel om SATURATION LIMIT skal
+svaret vaere i disse enheder (altsaa '31000', hvis den rigtige SATLIM er 
+paa 62000 ADU).
+
+
+

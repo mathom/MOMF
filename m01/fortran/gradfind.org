@@ -1,0 +1,703 @@
+      program main
+      INTEGER i,j,ncol,nrow,nseg,delsize,ndelrad
+      real sigma,DETLIM,cosmic,fwhm,skyback
+      character*80 name
+
+      common /size/ ncol, nrow,delsize,ndelrad
+      common /settings/ fwhm,sigma,DETLIM,nseg,cosmic,skyback
+      common /names/ name
+
+c     FIND algorithm convolve+, segments-, max-, grad+
+
+c     Read info from find.param - imagename,ncol,nrow,fwhm
+c     on separate lines
+      open(11,file='find.param',status='unknown')
+      read(11,'(a80)')name
+      read(11,*)COL
+      read(11,*)ROW
+      read(11,*)FW
+      read(11,*)SIG
+      read(11,*)DET
+      read(11,*)SEG
+      read(11,*)COSM
+      read(11,*)SKYB
+      close(11)
+
+      ncol=nint(COL)
+      nrow=nint(ROW)
+      fwhm=REAL(FW)
+      sigma=REAL(SIG)
+      DETLIM=REAL(DET)
+      nseg=nint(SEG)
+      cosmic=REAL(COSM)
+      skyback=REAL(SKYB)
+
+c      DETLIM=10.0
+      print*,'name,ncol,nrow,fwhm,sigma,DETLIM,nseg,cosmic,skyback'
+      print*,name,ncol,nrow,fwhm,sigma,DETLIM,nseg,cosmic,skyback
+
+
+      CALL submain
+
+      end
+
+
+      SUBROUTINE  submain
+      IMPLICIT NONE
+      PARAMETER NDIM=4096
+      parameter NSTARS = 50000
+      INTEGER i,j,im,jm,mxx,mxy,starid,ncosmic,ncol,nrow,delsize
+      integer*2 starlist(1:2,1:NSTARS),locval,maxv
+      integer*2 delshape(1:31,1:31)
+      integer*2 img(1:NDIM,1:NDIM),cimg(1:NDIM,1:NDIM)
+      character*80 name
+      REAL indexsp,rad,rad2,delrad2,delrad,sigma,DETLIM
+      REAL cosmic,fwhm,skyback
+      integer nhalf,middle,nseg,ndelrad
+      
+      integer segnr,seglow,seghigh,gradcountx,gradcounty
+      integer xold1(1:NSTARS),yold1(1:NSTARS)
+      LOGICAL*2 iempty(1:NDIM,1:NDIM)
+      integer iem,ima,nfind,Nrecl,jkk,iimp
+      integer coomin,starnr,ncc,id,jd,nw,ndd
+      real cmu,c2mu,Ssx,Ssy,Ssw,c2c,csigma,c2sigma,xloc
+      real sum1,sum2,xcoo,ycoo,xmag,xm0,ddi,sky
+      
+      integer ATMAX,x,y,ig,jg
+
+      common /images/ img
+      common /cimag/ cimg
+      common /shapes/ delshape
+      common /size/ ncol, nrow,delsize,ndelrad
+      common /settings/ fwhm,sigma,DETLIM,nseg,cosmic,skyback
+      common /names/ name
+
+      iem=0
+      ima=0
+      nfind=0
+      Nrecl=2*ncol*nrow
+      do i=0,ncol
+         do j=0,nrow
+            iempty(i,j)= .FALSE.
+         end do
+      end do
+      coomin=0.0
+      ncosmic=0
+
+
+C     ============ Making delshape ==========
+C     == Make radius of the sphere to be deleted 2.5sigma
+C     == Since 1FWHM = 2.35482sigma then 2.5sigma = 1.1 FWHM
+      delrad=1.1*fwhm
+      ndelrad=nint(delrad)
+      delsize=2*ndelrad+1
+      delrad2=(delrad)**2
+      do i=1,delsize
+         do j=1,delsize
+            IF ((i-ndelrad-1)**2+(j-ndelrad-1)**2 .GT. delrad2) THEN
+               delshape(i,j) = 0
+            ELSE
+               delshape(i,j) = 1
+            ENDIF
+         end do
+      end do
+C     ============ END of making delshape ==========
+C     ============ Reading in img and cimg ==========
+
+c      CALL readheader(name)
+      CALL readfits(name,img,ncol,nrow)
+      CALL convolve
+
+c      CALL readfits(cname,cimg,ncol,nrow)
+c      print*,cimg(440,368)
+c      print*,img(440,368)
+C     ============ END Reading in img and cimg ==========
+C     ============ Do search for local max on cimg ==========
+
+      starid=0
+      print*,'Name of file : ',name
+      print*,'ncol, nrow, FWHM ,sigma, DETLIM'
+      print*,ncol, nrow, fwhm ,sigma, DETLIM
+      print*,''
+      open(41,file='maxfind.coo',status='unknown')
+c     ============ Begin GRADfind  ========
+c      nseg=5 is defined in find.param
+c      rad=0.637*fwhm
+c      nhalf=INT(rad)
+c      MIDDLE=nhalf-1
+
+      gradcounty=ndelrad-1
+      DO WHILE (gradcounty .LT. (nrow-ndelrad-1))
+         gradcounty=gradcounty+1
+         gradcountx=ndelrad-1
+         DO WHILE (gradcountx .LT. (ncol-ndelrad-1))
+            gradcountx=gradcountx+1
+            IF (cimg(gradcountx,gradcounty) .GT. DETLIM) THEN
+               mxx=gradcountx
+               mxy=gradcounty
+               maxv= cimg(x,y)
+               ATMAX=0
+               DO WHILE (ATMAX .eq. 0)
+                  ATMAX= 1
+                  x=mxx
+                  y=mxy
+                  do ig=-1,1
+                     do jg=-1,1
+                        locval= cimg(ig+x,jg+y)
+                        if (locval .GT. maxv) then
+                           maxv=locval
+                           mxx=ig+x
+                           mxy=jg+y
+                           ATMAX=0
+                        end if
+                     end do
+                  END DO
+               END DO
+               gradcountx=gradcountx+2
+C     ========== End Gradfind ==================
+               IF (mxx .EQ. 1) go to 20 
+
+C     ==== Include a SHARP criteria or cosmic reject ====
+C     Rejected if maxv lt 0.3*img(mxx, mxy)
+               maxv=cimg(mxx,mxy)
+               IF (float(maxv) - cosmic*(float(img(mxx,mxy))-skyback))
+     c              19,18,18
+            
+ 18            CALL CONKILL (mxx,mxy)
+            
+c     cimg(mxx,mxy)=-maxv
+C     CALL SPIRAL (cimg,DETLIM,mxx,mxy,ncol,nrow )
+            
+            
+c     write(41,30)starid,mxx,mxy,maxv
+               print*,starid,mxx,mxy,maxv
+               starlist(1,starid)=mxx
+               starlist(2,starid)=mxy
+               starid=starid+1
+               go to 20 
+ 19            ncosmic=ncosmic+1
+               print*,'***COSMIC***'
+               do im=-1,1,1
+                  do jm=-1,1,1
+                     cimg(mxx+im,mxy+jm)=DETLIM-1
+                  end do
+               end do
+ 20         END IF
+         END DO
+      END DO
+
+c     30   format(i14,i14,i14)
+c     close(41)
+
+      print*,'After MAXFIND and CONKILL : ',starid,' loc.max '
+      print*,'and ',ncosmic,' cosmic detections'
+C     ============ END of search for local max on cimg ==========
+C     ============ Do BACKGROUND (as in MOMF) ==========
+
+      do 2010 starnr=1,starid-1
+         
+         i=starlist(1,starnr)
+         j=starlist(2,starnr)
+
+         iem=iem+1
+         cmu=0.0
+         csigma=0.0
+         ncc=0
+         do 201 id=max(1,(i-15)),min(ncol,(i+15)),1
+            do 200 jd=max(1,(j-15)),min(nrow,(j+15)),1
+               rad=(float(id-i))**2+(float(jd-j))**2
+               if (rad-70.0) 200,199,199
+ 199           continue
+               cmu=cmu+img(id,jd)
+               ncc=ncc+1
+ 200        continue
+ 201     continue
+         
+         cmu=cmu/float(ncc)
+         do 211 id=max(1,(i-15)),min(ncol,(i+15)),1
+            do 210 jd=max(1,(j-15)),min(nrow,(j+15)),1
+               rad=(float(id-i))**2+(float(jd-j))**2
+               if (rad-70.0) 210,209,209
+ 209           continue
+               csigma=csigma-(img(id,jd)-cmu)**2
+ 210        continue
+ 211     continue
+         
+         csigma=csigma/float(ncc)
+c     
+c     Init. counter for filter - Gaussian
+c     
+         do 320 jkk=1,2,1
+
+c     Double check - 320 continue
+c
+	     c2mu=0.0
+	     c2sigma=0.0
+	     c2c=0.0
+             
+	     do 301 id=max(1,(i-15)),min(ncol,(i+15)),1
+	        do 300 jd=max(1,(j-15)),min(nrow,(j+15)),1
+                   
+		   rad=(float(id-i))**2+(float(jd-j))**2
+		   if (rad-70.0) 300,299,299
+                   
+ 299               continue
+		   xloc=exp(((img(id,jd)-cmu)**2)/csigma)
+		   c2mu=c2mu+img(id,jd)*xloc
+		   c2c=c2c+xloc
+                   
+ 300            continue
+ 301         continue
+ 
+	     cmu=c2mu/c2c
+	     c2c=0.0
+             
+	     do 311 id=max(1,(i-15)),min(ncol,(i+15)),1
+	        do 310 jd=max(1,(j-15)),min(nrow,(j+15)),1
+                   
+		   rad=(float(id-i))**2+(float(jd-j))**2
+		   if (rad-70.0) 310,309,309
+
+ 309               continue
+		   xloc=exp(((img(id,jd)-cmu)**2)/csigma)
+		   c2c=c2c+xloc
+		   c2sigma=c2sigma-xloc*(img(id,jd)-cmu)**2
+
+ 310            continue
+ 311         continue
+ 
+	     csigma=c2sigma/c2c
+c
+c Double check....
+c
+ 320      continue
+ 
+          csigma=sqrt(-1.0*csigma)
+c          print*,'Csigma ',csigma
+
+
+c Sky mean and scatter calculated
+c
+c direct check II:
+ 
+          sum1=0.0
+          sum2=0.0
+          
+          do 401 id=(i-1),(i+1),1
+             do 400 jd=(j-1),(j+1),1
+                
+                sum1=sum1+img(id,jd)
+                
+ 400         continue
+ 401      continue
+          
+          do 411 id=(i-2),(i+2),1
+             do 410 jd=(j-2),(j+2),1
+                
+                sum2=sum2+img(id,jd)
+                
+ 410         continue
+ 411      continue
+          
+          sum2=9.0*((sum2-sum1)/16.0)
+          
+          sum1=(sum1-sum2)/3.0
+          
+          csigma=csigma*sigma
+          
+c     
+c     Check II: sigma-check
+c     
+          
+          if (csigma-sum1) 450,2010,2010
+          
+ 450      continue
+          
+          ima=ima+1
+c          print*,'Csigma ',csigma
+          
+c     
+c     End: check II
+c     
+          
+          
+          
+          Ssx=0.0
+          Ssy=0.0
+          Ssw=0.0
+          
+          do 611 id=max(1,(i-5)),min(ncol,(i+5)),1
+             do 610 jd=max(1,(j-5)),min(nrow,(j+5)),1
+                
+                rad=-0.3*(float(id-i))**2-0.3*(float(jd-j))**2
+                rad=exp(rad)
+                
+                Ssx=Ssx+(float(img(id,jd))-cmu)*rad*float(id)
+                Ssy=Ssy+(float(img(id,jd))-cmu)*rad*float(jd)
+                Ssw=Ssw+(float(img(id,jd))-cmu)*rad
+                
+ 610         continue
+ 611      continue
+          
+          if (Ssw) 2010,2010,612
+       
+ 612      continue
+          
+c          print*,'Ssw ',Ssw
+          do 712 iimp=1,5,1
+             
+	     xcoo=Ssx/Ssw
+	     ycoo=Ssy/Ssw
+             
+	     Ssx=0.0
+	     Ssy=0.0
+	     Ssw=0.0
+             
+	     do 711 id=max(1,(i-5)),min(ncol,(i+5)),1
+	        do 710 jd=max(1,(j-5)),min(nrow,(j+5)),1
+                   
+		   rad=-0.3*(float(id)-xcoo)**2-0.3*(float(jd)-ycoo)**2
+		   rad=exp(rad)
+                   
+		   Ssx=Ssx+(float(img(id,jd))-cmu)*rad*float(id)
+		   Ssy=Ssy+(float(img(id,jd))-cmu)*rad*float(jd)
+		   Ssw=Ssw+(float(img(id,jd))-cmu)*rad
+                   
+ 710            continue
+ 711         continue
+             
+	     if (Ssw) 2010,2010,712
+             
+ 712      continue
+c          print*,'Ssw ',Ssw
+
+          xcoo=Ssx/Ssw
+          ycoo=Ssy/Ssw
+          
+          xmag=20.0-2.5*log10(Ssw)
+          
+          id=nint(xcoo)
+          jd=nint(ycoo)
+          
+          if (iempty(id,jd)) go to 2010
+	      
+ 630      iempty(id,jd)= .TRUE.
+          xm0=2.5*log10(1.0+csigma/Ssw)
+          sky=cmu
+          ndd=(i-id)**2+(j-jd)**2
+          
+          do 5131 nw=1,nfind,1
+             ddi = (xcoo-xold1(nw))**2 +(ycoo-yold1(nw))**2
+             if (ddi-1.5) 20041,20041,5131
+ 5131     continue
+          
+          nfind=nfind+1
+          
+          xold1(nfind)=xcoo
+          yold1(nfind)=ycoo
+          
+          write(6,5141)i,j,nfind,ima,iem,xcoo,ycoo,xmag,xm0,sky,ndd
+          write(41,5141)i,j,nfind,ima,iem,xcoo,ycoo,xmag,xm0,sky,ndd
+ 5141     format(4i6,i6,2f8.2,2f9.4,f8.2,i6)
+c     FORMAT has been editted a little from the orig. MOMFfind
+c     5141            format(4i6,i8,2f7.2,2f9.4,f8.2,i8)
+          if (coomin-xmag) 2003,2004,2004
+ 2003     coomin=xmag
+ 2004     continue
+          
+20041     continue
+          
+          
+ 2010  continue
+       
+       close(41)
+       
+c     
+c     Making output for cont. MOMF-routines
+c     
+       open (41,file='Dcoo.fit',access='direct',
+     c      recl=Nrecl,status='unknown')
+
+       
+       write(41,rec=1) ((img(i,j),i=1,ncol),j=1,nrow)
+       close(41)
+ 
+       open(42,file='coomin',status='unknown')
+       write(42,'(f12.5)')coomin
+       close(42)
+       
+       print*,''
+       print*,'After GRADFIND &CONKILL with a detectionlimit of'
+       print*,DETLIM,'ADU above zero in the convolved frame :'
+       print*,starid,' local maxima detected'
+       print*,ncosmic,' cosmic detections'
+       print*,'After Gauss, Round and Sharpness criteria with a'
+       print*,'sigma of ',sigma,' we are left with ',nfind,' stars!'
+
+       END
+C     ************************************************************
+
+C     ====================================
+
+      SUBROUTINE CONKILL (x,y)
+c      IMPLICIT NONE
+      PARAMETER NDIM=4096
+      INTEGER i,j,x,y,ncol, nrow,delsize,ndelrad
+      INTEGER nseg
+      REAL sigma,DETLIM,cosmic,fwhm,skyback
+      integer*2 delshape(1:31,1:31)
+      integer*2 cimg(1:NDIM,1:NDIM)
+      common /cimag/ cimg
+      common /shapes/ delshape
+      common /size/ ncol, nrow,delsize,ndelrad
+      common /settings/ fwhm,sigma,DETLIM,nseg,cosmic,skyback
+
+      do i=1,delsize
+         do j=1,delsize
+            if (delshape(i,j) .EQ. 1) then
+               cimg(x-ndelrad-1+i,y-ndelrad-1+j)=DETLIM-1
+            end if
+         end do
+      END DO
+
+      RETURN
+      END!
+
+   
+C     ====================================
+C     ====================================
+
+      SUBROUTINE CONVOLVE
+C     ===== Make the gaussian convolver ====
+
+      PARAMETER NDIM=4096
+      real DENOM,PIXELS,RADIUS,RSQ,SIGSQ,SGOP,SUMG,SUMGSQ,RELERR
+      integer JSQ,NBOX,i,j,im,jm,MIDDLE,NHALF,ncol,nrow,delsize
+      REAL G(1:31,1:31),locval,delrad,skyback
+      LOGICAL SKIP(1:31,1:31)
+      integer*2 img(1:NDIM,1:NDIM),cimg(1:NDIM,1:NDIM)
+      integer nseg
+      REAL sigma,DETLIM,cosmic,fwhm
+      real locmin,locmax
+      common /images/ img
+      common /cimag/ cimg
+      common /settings/ fwhm,sigma,DETLIM,nseg,cosmic,skyback
+      common /size/ ncol, nrow,delsize,ndelrad
+      RADIUS=MAX(2.001, 0.637*fwhm)
+      SIGSQ=(fwhm/2.35482)**2
+      NHALF=min(15,int(RADIUS))
+      MIDDLE=NHALF+1
+      NBOX=2*NHALF+1
+      RADIUS=RADIUS**2
+      SUMG=0.0
+      SUMGSQ=0.0
+      PIXELS=0.0
+      do j=1,NBOX
+         JSQ=(j-MIDDLE)**2
+         do i=1,NBOX
+            RSQ=REAL((i-MIDDLE)**2+JSQ)
+            G(i,j)=EXP(-0.5*RSQ/SIGSQ)
+            IF (RSQ .LE. RADIUS) THEN
+               SKIP(i,j)=.FALSE.
+               SUMG=SUMG+G(i,j)
+               SUMGSQ=SUMGSQ+G(i,j)**2
+               PIXELS=PIXELS+1.0
+            ELSE
+               SKIP(i,j)=.TRUE.
+            END IF
+         end do
+      end do
+
+      DENOM=SUMGSQ-(SUMG**2)/PIXELS
+      SGOP=SUMG/PIXELS
+      RELERR=1.0/DENOM
+      RELERR=SQRT(RELERR)
+
+      do j=1,NBOX
+         do i=1,NBOX
+C     ***c[good] = (c[good] - sumc)/sumcsq	; 
+            IF (SKIP(i,j)) THEN
+               G(i,j)=0.0
+            ELSE
+               G(i,j)=(G(i,j)-SGOP)/DENOM
+            ENDIF
+         end do
+      end do
+      
+      do j=1,NBOX,1
+         print '(20F4.2)',(G(i,j),i=1,NBOX,1)
+      end do
+c     ====== Do the convolving
+      do j=MIDDLE,nrow-MIDDLE
+         do i=MIDDLE,ncol-MIDDLE
+            locval=0
+            do im=-NHALF,NHALF,1
+               do jm=-NHALF,NHALF,1
+                  locval=locval+img(i+im,j+jm)*G(MIDDLE+im,MIDDLE+jm)
+               end do
+            end do
+            cimg(i,j)=int(locval)
+         end do
+      end do
+      do j=1,NHALF
+         do i=1,NHALF
+            cimg(i,j)=0
+            cimg(ncol-i,j)=0
+            cimg(i,nrow-j)=0
+            cimg(ncol-i,nrow-j)=0
+         end do
+      end do
+
+      RETURN
+      END!
+
+C     ====================================
+
+C************************************************************
+      subroutine readheader(filename)
+
+C     Print out all the header keywords in all extensions of a FITS file
+
+      integer status,unit,readwrite,blocksize,nkeys,nspace,hdutype,i
+      integer xi,yi
+      character filename*80,record*80
+
+ 1    status=0
+
+C     Get an unused Logical Unit Number to use to open the FITS file
+ 2    call ftgiou(unit,status)
+
+C     name of FITS file 
+
+C     open the FITS file, with read-only access
+      readwrite=0
+ 3    call ftopen(unit,filename,readwrite,blocksize,status)
+
+100   continue
+
+C     Determine the number of keywords in the header
+ 4    call ftghsp(unit,nkeys,nspace,status)
+
+C     Read each 80-character keyword record, and print it out
+      do i = 1, nkeys
+ 5        call ftgrec(unit,i,record,status)
+          print *,record
+      end do
+
+C     Print out and END record, and a blank line to mark the end of the header
+      if (status .eq. 0)then
+          print *,'END'
+          print *,' '
+      end if
+
+C     try moving to the next extension in the FITS file, if it exists
+ 6    call ftmrhd(unit,1,hdutype,status)
+
+      if (status .eq. 0)then
+C         success, so loop back and print out keywords in this extension
+ 7        go to 100
+
+      else if (status .eq. 107)then
+C         hit end of file, so quit
+ 8        print *,'***** END OF FILE *****'
+          status=0
+          call ftcmsg
+      end if
+
+C     close the file, free the unit number, and exit
+ 9    call ftclos(unit, status)
+      call ftfiou(unit, status)
+
+C     check for any error, and if so print out error messages
+ 10   if (status .gt. 0)print*,'Error, ',status
+      end
+
+C************************************************************
+
+      subroutine readfits(filename,imgarr,ncolumn,nrowline)
+
+C     Read a FITS image into array
+      PARAMETER NDIM=4096
+
+      integer status,unit,readwrite,blocksize,naxes(2),nfound,xi,yi
+      integer group,firstpix,nbuffer,npixels,i,ncolumn,nrowline
+      integer*2 imgarr(1:NDIM,1:NDIM)
+
+      real datamin,datamax,nullval,buffer(NDIM)
+      logical anynull
+      character filename*80
+
+ 1    status=0
+
+C     Get an unused Logical Unit Number to use to open the FITS file
+ 2    call ftgiou(unit,status)
+
+C     open the FITS file previously created by WRITEIMAGE
+      readwrite=0
+ 3    call ftopen(unit,filename,readwrite,blocksize,status)
+
+C     determine the size of the image
+ 4    call ftgknj(unit,'NAXIS',1,2,naxes,nfound,status)
+
+C     check that it found both NAXIS1 and NAXIS2 keywords
+ 5    if (nfound .ne. 2)then
+          print *,'READIMAGE failed to read the NAXISn keywords.'
+          return
+       end if
+
+C     initialize variables
+      npixels=naxes(1)*naxes(2)
+      print*,npixels
+      group=1
+      firstpix=1
+      nullval=-999
+      datamin=1.0E30
+      datamax=-1.0E30
+      yi=1
+c      ncolumn=naxes(1)
+c      nrowline=naxes(2)
+      do while (npixels .gt. 0)
+C         read up to ncol pixels at a time 
+         nbuffer=min(ncolumn,npixels)
+ 6       call ftgpve(unit,group,firstpix,nbuffer,nullval,
+     &        buffer(1:ncolumn),anynull,status)
+         do i=1,nbuffer
+            datamin=min(datamin,buffer(i))
+            datamax=max(datamax,buffer(i))
+            imgarr(i,yi)=buffer(i)
+         end do
+         yi=yi+1
+C         increment pointers and loop back to read the next group of pixels
+         npixels=npixels-nbuffer
+         firstpix=firstpix+nbuffer
+      end do
+
+
+C     print out the min and max values
+      print *,'Min and max values in the image are:',datamin,datamax
+      print *,'Cornerpix are (1,1) (1023,925): ',
+     &     imgarr(1,1),imgarr(1023,925)
+C     close the file and free the unit number
+ 7    call ftclos(unit, status)
+      call ftfiou(unit, status)
+
+C     check for any error, and if so print out error messages
+ 8    if (status .gt. 0)print*,'Error, ',status
+      return
+      end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

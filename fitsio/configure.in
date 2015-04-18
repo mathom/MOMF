@@ -1,0 +1,104 @@
+#
+# configure.in for fitsio library (libfitsio.a)
+#
+# /redshift/sgi6/lheavc/ftools/fitsio/configure.in,v 3.2 1996/09/03 16:32:15 peachey Exp
+#
+
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT(fitsio.f)
+
+AC_PROGRAM_CHECK(uname_found, uname, 1, 0)
+if test $uname_found -eq 0 ; then
+    echo "configure: No uname found; setting system type to unknown."
+    system="unknown"
+else
+    system=`uname -a`
+fi
+
+dnl Checks for programs.
+AC_PROG_RANLIB
+
+# determine system/compiler dependent values for fitsio build variables
+if test `echo $system | grep -i SUNOS | wc -l` -ne 0; then
+    echo "system identified as SunOS or Solaris"
+    SYSPEC=fitssun
+    FC=f77
+    FFLAGS="-O -u"
+elif test `echo $system | grep -i HP-UX | wc -l` -ne 0; then
+    echo "system identified as HP-UX family"
+    SYSPEC=fitssun
+    FC=f77
+    FFLAGS="-O -u +E5 +U77"
+elif test `echo $system | grep -i AIX | wc -l` -ne 0; then
+    echo "system identified as IBM AIX"
+    SYSPEC=fitsf90
+    FC=f77
+    FFLAGS="-O -u -qcharlen=2880"
+elif test `echo $system | grep -i IRIX | wc -l` -ne 0; then
+    echo "system identified as IRIX"
+    SYSPEC=fitsdec
+    FC=f77
+    FFLAGS="-u"
+elif test `echo $system | grep -i ULTRIX | wc -l` -ne 0; then
+    echo "system identified as ULTRIX"
+    SYSPEC=fitsdec
+    FC=f77
+    FFLAGS="-O -u"
+elif test `echo $system | grep -i OSF1 | wc -l` -ne 0; then
+    echo "system identified as OSF1"
+    SYSPEC=fitsdec
+    FC=f77
+    FFLAGS="-O -u"
+elif test `echo $system | grep -i LINUX | wc -l` -ne 0; then
+    echo "system identified as LINUX"
+    SYSPEC=fitslinx
+    FC=f77
+    FFLAGS="-O -u"
+elif test `echo $system | grep -i CRAY | wc -l` -ne 0; then
+    echo "system identified as CRAY"
+    SYSPEC=fitscray
+    FC=f90
+    FFLAGS=
+else
+#   see if this looks like a NeXT (which doesn't support uname)
+    FC=f77
+    FFLAGS="-O -u"
+#   There are 2 versions: use fitsdec for the Oasys Green Hill compiler
+#                     and use fitsnxab for the Absoft compiler
+    ${FC} -v -c fitsdec.f 2> /tmp/$$.f77.check.log
+
+    if test `grep Absoft /tmp/$$.f77.check.log | wc -l` -gt 0 ; then
+        echo "system identified as NeXT with Absoft compiler"
+        SYSPEC=fitsnxab
+        rm /tmp/$$.f77.check.log
+        rm fitsdec.o
+    elif test `grep Oasys /tmp/$$.f77.check.log | wc -l` -gt 0 ; then
+        echo "system identified as NeXT with Oasys compiler"
+        SYSPEC=fitsdec
+        rm /tmp/$$.f77.check.log
+        rm fitsdec.o
+    else
+        system=`echo "$system" | awk '{printf("%-43s", $0)}'`
+        echo 
+        echo "**************************WARNING****************************"
+        echo "* Unable to tailor Makefile to fit your system. After       *"
+        echo "* configure finishes, edit Makefile, replacing instances of *"
+        echo "* XXXoptionXXX to fit your configuration. For more          *"
+        echo "* information, send mail to:                                *"
+        echo "*      ftoolshelp@athena.gsfc.nasa.gov                      *"
+        echo "* and please include the following information:             *"
+        echo "* \$system = $system *"
+        echo "*************************************************************"
+        echo 
+        SYSPEC=XXXfitssunXXX
+        FC=XXXf77XXX
+        FFLAGS=XXXFFLAGSXXX
+    fi
+fi
+
+AC_SUBST(SYSPEC)dnl
+AC_SUBST(FC)dnl
+AC_SUBST(FFLAGS)dnl
+AC_SUBST(RANLIB)dnl
+
+AC_OUTPUT(Makefile)

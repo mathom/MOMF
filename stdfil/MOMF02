@@ -1,0 +1,6 @@
+#
+#
+#
+foreach f (`cat input.MOMF`)
+$MOMF_PROG/m02/momf02 $f
+end

@@ -1,0 +1,4 @@
+  16.0      ( Sky-radius inner-limit in pixels, e.g. 11.0 )
+  28.0      ( Sky-radius outer-limit in pixels, e.g. 22.0 )
+   1.0      ( Sky-multiplication, e.g. 0.0 (FIX sky = 0), e.g.
+              1.0 (use fully local sky determination ) )

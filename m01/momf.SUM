@@ -1,0 +1,13 @@
+#
+#
+#
+echo ' '
+echo '*******************************'
+echo '  momf.SUM'
+echo '  Multi Object Multi Frame'
+echo '*******************************'
+echo ' '
+echo ' Batch-mode version 3.0'
+echo '              1994'
+echo ' '
+$1/m01/lib/Dsum

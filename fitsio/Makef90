@@ -1,0 +1,73 @@
+# Makefile to build the Fortran-90 version of FITSIO library
+#
+
+SHELL = /bin/sh
+
+#*****************************************************************************
+# If configure failed to identify your system, you may need to
+# edit the following 4 options for your particular machine:
+#
+# 1. DEFINE WHICH SYSTEM-DEPENDENT SOURCE FILE TO USE:
+#-----------------------------------------------------
+#       SUN, HP, IBM AIX workstations:              fitssun
+#       NeXT w/ABsoft compiler:                     fitsnxab
+#       DECstations, DEC Alphas w/OSF1, SGI, NeXT:  fitsdec
+#       IBM PCs w/Linux OS:                         fitslinx
+#       Cray supercomputers:                        fitscray
+#
+SYSPEC=fitsf90
+#
+# 2. DEFINE THE COMPILER COMMAND:
+#--------------------------------
+#       default:                           FC=f77
+#       Cray supercomputers:               FC=cf77
+#
+FC=f90
+#
+# 3. DEFINE COMPILER FLAGS:
+#--------------------------
+#       default for most compilers:        FFLAGS= -O -u
+#       Cray supercomputers:               FFLAGS=
+#       Silicon Graphics:                  FFLAGS= -u
+#       IBM AIX xlf Fortran:               FFLAGS= -O -u -qcharlen=2880
+#       HP-UX series:                      FFLAGS= -O -u +E5 +U77 
+#
+FFLAGS=-O -u
+#
+# 4. DEFINE RANLIB (some machines don't use RANLIB so set it equal to 'touch')
+#------------------
+#       default:                           RANLIB=ranlib
+#       SUN Solaris, CRAY, SGI, HP:        RANLIB=touch
+#
+RANLIB=touch
+#
+#*****************************************************************************
+
+all:		stand_alone clean
+
+stand_alone:	libfitsio.a
+
+libfitsio.a:	
+		@mkdir split.$$$$; \
+		cp fitsio.f split.$$$$; \
+		cp fitsfort.f split.$$$$; \
+		cp $(SYSPEC).f split.$$$$; \
+		echo "fitsio: splitting source files in temporary directory"; \
+		cd split.$$$$ ; \
+		fsplit fitsio.f > /dev/null; \
+		fsplit fitsfort.f > /dev/null; \
+		fsplit $(SYSPEC).f > /dev/null; \
+		rm -f fitsio.f; \
+		rm -f fitsfort.f; \
+		rm -f $(SYSPEC).f; \
+		rm -f zzz*.f; \
+		$(FC) -c $(FFLAGS) *.f; \
+		ar rv libfitsio.a *.o; \
+		$(RANLIB) libfitsio.a; \
+		mv libfitsio.a .. ;
+
+install: 	stand_alone
+
+clean:
+		rm -rf split.*
+

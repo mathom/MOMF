@@ -1,0 +1,150 @@
+             CFITSIO - Calling FITSIO from C programs
+
+                           NOTICE
+-----------------------------------------------------------------------
+  As of March 1996, there is a new C version of FITSIO
+available.  It would be preferable to use this new version, written 
+entirely in ANSI-C, rather than the CFORTRAN macros which are
+described below.  This new version is available over the WWW at
+
+     http://heasarc.gsfc.nasa.gov/docs/software/fitsio/fitsio.html
+
+or by anonymous ftp from legacy.gsfc.nasa.gov in the software/fitsio/c/
+directory.
+-----------------------------------------------------------------------
+
+C programmers may more easily call the Fortran FITSIO subroutines
+by using a set of macro definitions included in the cfitsio.h header
+file that is distributed as part of the FITSIO package.   This header
+file was written by Dr. Jim Ingham at the HEASARC and defines a C macro
+corresponding to every Fortran subroutine in the FITSIO user
+interface.  These macros provide a machine-independent interface
+between C and Fortran by using the CFORTRAN package (actually a C
+header file) developed by Burkhard Burow (burow@vxdesy.cern.ch, U. of
+Toronto).
+
+The CFITSIO macros have the same calling sequence as the FITSIO Fortran
+subroutines defined in this FITSIO User's Guide.  The only difference
+is that the macro routines all have uppercase names and they begin with
+the letters 'FC' rather then 'ft' as in all the fortran subroutine
+names.   As an example, one would call ftclos(unit, status) in fortran
+but would call FCCLOS(unit,\&status) when calling the CFITSIO macros in
+a C program.  Programmers should refer to the wsimple.c and rsimple.c
+sample programs that are distributed with FITSIO for examples of how to
+call the FITSIO routines.
+
+To use CFITSIO, one  must include the cfitsio.h header file at the
+beginning of the C program.  Note that cfitsio.h requires 2 other C
+header files, cfortran.h and pctype.h, (which are also distributed with
+FITSIO) but these do not need to be explicitly included in the C
+application program.   
+
+C programmers should be aware that there are subtle differences between
+C and Fortran in the use of character strings and especially vectors of
+character strings.  Please read the comments at the beginning of the
+cfitsio.h file for a summary of the restrictions when calling the
+FITSIO routines that have character string arguments.
+
+Note that this cfitsio.h header file was introduced with version 3.7 of
+FITSIO, and it replaces an older set of C wrapper routines (also called
+CFITSIO) that were distributed with previous versions of FITSIO.  These
+older CFITSIO wrapper routines may in principle still be used, but it
+is recommended that programs be converted to use the new cfitsio.h
+macros because the macros are generally faster, and they provide a more
+natural C interface.  Conversion of software from using the old C
+wrappers to using the new cfitsio.h file should be straight forward:
+change the names in all the calls to the FITSIO routines from lowercase
+to uppercase, and include the cfitsio.h header at the beginning of the
+C application program.  One will also need to add the C '*' or '\&'
+constructs in front of some of the subroutine parameter names (e.g.,
+call FCCLOS(unit,\&status) instead of fcclos(unit,status)) but this
+usage should be familiar to experienced C programmers.
+
+C programs that call CFITSIO must be linked to include the Fortran
+language libraries that are needed by FITSIO (since it is written in
+Fortran). The exact link procedure is necessarily machine dependent,
+and unfortunately is not always obvious because of various pecularities
+in either the C or Fortran compilers.  The following guidelines may be
+helpful in sorting out the correct link procedure on Unix platforms.
+
+There are basically 2 options for linking a C program that calls
+Fortran routines.  The first and simplest option, when it works, is to
+use the `f77' command to link the C program;  this will automatically
+link in the required Fortran language libraries without having to
+specify their names or directory path.  For example, if one has a C
+program called foo.c which calls cfitsio, it may be compiled and linked
+with the following commands:
+-
+% cc -c foo.c
+% f77 -o foo foo.o -L$FITSDIR -lfitsio
+-
+where \$FITSDIR is an environment variable which points to the
+directory where the fitsio library has been installed (use `-L.' if the
+fitsio library is located in the current work directory).
+Unfortunately, using f77 to perform the linking does not always work,
+especially if the C and Fortran compilers are supplied by different
+vendors (e.g., when combining gcc with a commercial Fortran compiler).
+The error message that is reported in this case usually says something
+about an undefined or unresolved symbol `main'.
+
+If this error occurs, then a more orthodox linking procedure must be
+used which requires that the names and path to the Fortran language
+libraries be explicitly specified.  The compile and link commands,
+(using `gcc' instead of `cc' in this example) would look something
+like:
+-
+% gcc -c foo.c
+% gcc -o foo foo.o -L$FITSDIR -lfitsio $F77LFLAGS
+-
+where \$F77LFLAGS is a platform-specific environment variable which
+specifies the Fortran 77 libraries that need to be linked with the program.
+It may require some detective work to determine where the Fortran
+libraries are located on any given machine.  One method for finding
+them is to compile any simple Fortran program (such as the standard
+`Hello, world!' program) using the -v option, as in
+-
+% f77 -v -o test test.f
+-
+This will produce a verbose compile and link listing, with a line
+that looks something like:
+-
+/bin/ld -dc -dp -e start -u _MAIN_ -X -o test /usr/lang/SC1.0/crt0.o 
+ /usr/lang/SC1.0/cg87/_crt1.o -L/usr/lang/SC1.0/cg87 -L/usr/lang/SC1.0 
+ test.o -lF77 -lm -lc
+-
+From this listing it should be possible to decipher the names of the
+Fortran libraries and their location.  In this case the libraries are
+located in /usr/lang/SC1.0 and they are called libF77.a and libm.a.
+Thus to link the example cfitsio program on this machine, one would
+specify:
+-
+% gcc -c foo.c
+% gcc -o foo foo.o -L$FITSDIR -lfitsio -L/usr/lang/SC1.0 -lF77 -lm
+-
+Another method of locating the Fortran libraries is to execute `which f77'
+then search that directory, and any subdirectories, for the libraries.
+
+For reference, here is the value for F77LFLAGS what was found to work
+on various platforms:
+-
+SunPro f77 2.0.1 on Solaris 2.4:
+
+    F77LFLAGS= -L$F77HOME -lM77 -lF77 -lm
+
+SunPro f77 3.0.1 on Solaris 2.3:
+
+    F77LFLAGS= -L$F77HOME -lM77 -lF77 -lsunmath -lm
+
+SunPro f77 1.0 on SunOS4.1.4:
+
+    F77LFLAGS= -L$F77HOME -lF77 -lm
+
+SunPro f77 3.0.1 on SunOS4.1.3:
+
+    F77LFLAGS= -L$F77HOME -lF77 -lM77 -lsunmath -lm -lansi
+
+Convex supercomputers:
+
+    F77LFLAGS= -L$F77HOME -lI77 -lF77 -lU77 -lm -lmathC1 -llfs -lvfn
+-
+

@@ -1,0 +1,28 @@
+#
+#
+#
+echo ' '
+echo '*******************************'
+echo '  momf.COOR'
+echo '  Multi Object Multi Frame'
+echo '*******************************'
+echo ' '
+echo ' Batch-mode version 3.0'
+echo '              1994'
+echo ' '
+$1/m01/MOMF.find $1
+echo 'coordinate I'
+$1/m01/lib/Dcoor
+ls -l Dstars
+# cp Dstars sort.test.before
+sort -n  +0.0 Dstars > Dstars2
+# cp Dstars2 sort.test.after
+echo 'Show I'
+ls -l Dcoo.fit Dstars*
+rm Dstars
+$1/m01/lib/Dshow
+cp Dstars Dstars2
+cat Dstars >> Dstars3
+mv Dstars3 Dstars
+$1/m01/lib/Dnew
+rm -f offset.SUM Dcoo.fit

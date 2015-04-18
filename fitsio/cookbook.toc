@@ -1,0 +1,23 @@
+\protect \contentsline {chapter}{\protect \numberline {1}Introduction to FITSIO}{1}
+\protect \contentsline {section}{\protect \numberline {1.1}What is FITSIO?}{1}
+\protect \contentsline {section}{\protect \numberline {1.2}Sources of information on FITSIO and FITS}{1}
+\protect \contentsline {section}{\protect \numberline {1.3}A FITS Primer}{2}
+\protect \contentsline {section}{\protect \numberline {1.4}Basic Conventions used in FITSIO}{3}
+\protect \contentsline {subsection}{\protect \numberline {1.4.1}Current Header Data Unit (CHDU)}{3}
+\protect \contentsline {subsection}{\protect \numberline {1.4.2}Subroutine Names}{3}
+\protect \contentsline {subsection}{\protect \numberline {1.4.3}Subroutine Families}{3}
+\protect \contentsline {subsection}{\protect \numberline {1.4.4}Implicit Data Type Conversion}{3}
+\protect \contentsline {subsection}{\protect \numberline {1.4.5}Data Scaling}{4}
+\protect \contentsline {subsection}{\protect \numberline {1.4.6}Error Status Values and the Error Message Stack}{4}
+\protect \contentsline {chapter}{\protect \numberline {2}Example FITSIO Programs}{5}
+\protect \contentsline {section}{\protect \numberline {2.1}WRITEIMAGE - write a FITS 2-D image}{6}
+\protect \contentsline {section}{\protect \numberline {2.2}WRITEASCII - write a FITS ASCII table}{8}
+\protect \contentsline {section}{\protect \numberline {2.3}WRITEBINTABLE - write a FITS binary table}{10}
+\protect \contentsline {section}{\protect \numberline {2.4}COPYHDU - copy HDUs to a new file}{12}
+\protect \contentsline {section}{\protect \numberline {2.5}SELECTROWS - copy rows from one table to another}{14}
+\protect \contentsline {section}{\protect \numberline {2.6}READHEADER - read and print header keywords}{18}
+\protect \contentsline {section}{\protect \numberline {2.7}READIMAGE - read the pixel values in a FITS image}{20}
+\protect \contentsline {section}{\protect \numberline {2.8}READTABLE - read data from a FITS table}{22}
+\protect \contentsline {chapter}{\protect \numberline {3}Utility Subroutines }{25}
+\protect \contentsline {section}{\protect \numberline {3.1}PRINTERROR - print FITSIO error messages}{26}
+\protect \contentsline {section}{\protect \numberline {3.2}DELETEFILE - delete a FITS file}{28}

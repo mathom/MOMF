@@ -1,0 +1,132 @@
+\documentclass[11pt,a4paper,twoside]{article}
+\include{preamble_article}
+\begin{document}
+\title{Comparison between NEW and OLD MOMF version.}
+\author{Martin Robert Knudsen,\thanks{E-mail: Martin.Robert.Knudsen@vub.ac.be}\\
+OBSS/WE, Vrije Universiteit Brussel}
+\date{04 October 2001}
+\maketitle
+\section{Setting up NEW MOMF}
+\bi
+\item{Retrieve the MOMF package}\\
+-made tarfile from $\sim$srf/MOMF/ \\
+-ftp and extract
+\item{Set environments in .cshrc}
+\begin{verbatim}vi ~/.cshrc
+setenv MOMF_PROG /CCD3/martinrk/MOMF
+setenv MOMF_DATAIN /CCD3/martinrk/MOMF/in
+setenv MOMF_DATAOUT /CCD3/martinrk/MOMF/out
+setenv MOMF_GRAD /CCD3/martinrk/MOMF/in
+vi MakeConfig
+cp Makefile.linux Makefile
+\end{verbatim}
+\item{Adjust calcsize}
+\begin{verbatim}vi common/calcsize.f\end{verbatim}
+\item{Adjust Makefiles}\\
+-change f77 to g77 and remove UNIX options and 
+ add option -fbounds-check (crucial for Linux) and
+ use local FITSIO lib.
+\begin{verbatim}vi m0[1.2.3]*/fortran/Makefile\end{verbatim}
+\item{Bug fix code}\\
+-edited \texttt{/m01/fortran/gradfind.}f\\
+-edited \texttt{/m01/fortran/Dcoor.f}\\
+-edited \texttt{/m03/fortran/MAGvariab.f}\\
+-edited \texttt{/m03/fortran/MAGmean.f}\\
+-edited \texttt{/m03/fortran/MAGvariab.f}
+\item{Make the binaries}\\
+Run \texttt{make} in all fortran dirs
+\item{Setup test images and parameterfiles for the NEW version}\\
+- copy 36 fits images (open cluster NGC6231) to {\$}MOMF{\_}DATAIN\\
+- edit FORMAT (-3) 1648 1651 2
+\item{RUN NEW MOMF version}\\
+\begin{verbatim}
+MOMF01.nosum
+ (364 stars)
+MOMF02
+MOMF03
+\end{verbatim}
+\item{Save outputfiles}\\
+-Move {\$}MOMF{\_}DATAOUT/* away to enable new run
+\item{Setup test images and parameterfiles for the OLD version}\\
+-construct the raw files by :\\
+\texttt{.r /CCD3/martinrk/N6231/red/fits2momf}\\
+\texttt{erom,infits,file='fits.list',/sep}\\
+\texttt{fits2momf,infits,'/CCD3/martinrk/MOMF/in/'}\\
+- edit FORMAT (0) 1648 1651 2\\
+- edit input.MOMF to list the raw files\\
+- change .cshrc so env matches old MOMF version and source it\\
+\item{RUN OLD MOMF version}\\
+\begin{verbatim}
+MOMF02
+MOMF03
+\end{verbatim}
+\ei
+\newpage
+\section{Comparing results from the new and the old run.}
+Between starfiles of the same stars there are offsets of 11.1 mmag
+in average, see \fig{comp}.
+\figpsautot{comp}{10.0}{{\bf Deviation between NEW and OLD MOMF version}
+The average difference appears to be at 11.1mmag, with standard deviation
+of the residuals rising naturally for lower fainter stars. The vertical
+errorbars indicate $\pm 1\sigma$.}
+For individual stars, the offset is seen to be fairly constant from
+image to image, see \fig{2stars} and \fig{2morestars}.
+
+\begin{figure}[!th]
+\begin{center}
+\epsfig{file=comp148.ps , width=6.5cm}
+\epsfig{file=comp165.ps , width=6.5cm}
+\end{center}
+\figurcapt{2stars}{{\bf Variation of 2 bright variable stars.} Variation and
+offset in magnitude for the NEW and OLD MOMF version for 2 variable stars.}
+\end{figure}
+\begin{figure}[!th]
+\begin{center}
+\epsfig{file=comp257.ps , width=6.5cm}
+\epsfig{file=comp067.ps , width=6.5cm}
+\end{center}
+\figurcapt{2morestars}{{\bf Variation of a bright and a faint star.} Variation and
+offset in magnitude for the NEW and OLD MOMF version for a bright variable stars
+and a faint but fairly constant one (067).}
+\end{figure}
+
+The systematic offset is acceptable and with the standard deviation at fractions
+of mmag we accept the timeseries produced with the NEW MOMF version. It should be
+expected that reduction noise can be slightly different with a different compiler
+and architecture, but in this case the compiler, the architecture and the software
+unchanged except for formats, arraysizes and the procedure for reading the images
+into memory. 
+A hint at where to look is the difference is the centroid coordinates, depending on
+settings in \texttt{FORMAT}. With slightly different centroids calculated magnitudes
+are also slightly different.\\
+For the RAW images and the OLD version of MOMF \texttt{120700012} yields:
+\small
+\begin{verbatim}
+                      3.1235   4.68530   6.24706   7.80883   9.76104  11.71324
+                     16.5806  16.58579  16.58795  16.59146  16.59197  16.59294
+   1 1588.75    9.81  11.90310  12.85034  11.80305  11.28043  11.42104  10.65182
+   2  148.08    9.08   9.86739   9.89846   9.80531   9.74169   9.62539   9.85054
+   3 1507.96    9.77   7.76248   7.73862   7.74793   7.72563   7.73345   7.72797
+...
+\end{verbatim}
+\normalsize
+For the FITS images and the NEW version of MOMF \texttt{120700012.fits} yields:
+\small
+\begin{verbatim}
+                      3.1888   4.78313   6.37751   7.97189   9.96486  11.95783
+                     16.5805  16.58587  16.58842  16.59172  16.59217  16.59302
+    1 1588.78    9.82  11.61980  12.71783  11.87521  11.48783  11.29549  10.57561
+    2  148.08    9.09   9.86734   9.89623   9.82434   9.69660   9.64958   9.87606
+    3 1507.96    9.77   7.76392   7.73688   7.74319   7.73420   7.72797   7.72145
+...
+\end{verbatim}
+\normalsize
+So, even though the same coordinate input file is used and the same calculations
+are performed by the same piece of code, the centroid coordinates in the output
+files from MOMF02 are slightly different. This should be investigated further.\\
+In conclusion, the NEW version with new its features and larger arrays works as well
+as the OLD version, and returns only slightly different timeseries.
+
+\end{document}
+
+

@@ -1,0 +1,773 @@
+\documentclass[]{article}
+\pagestyle{plain}
+\setlength{\oddsidemargin}{0cm}
+\setlength{\headheight}{0cm}
+\setlength{\headsep}{0cm}
+\setlength{\topmargin}{0cm}
+\setlength{\textwidth}{15.5cm}
+\setlength{\textheight}{22.0cm}
+% \setlength{\footheight}{1cm}
+\setlength{\footskip}{2cm}
+\renewcommand{\baselinestretch}{1.1}
+\begin{document}
+\noindent {\em Multi Object Multi Frame photometric package (MOMF) 
+- Institute of Astronomy}
+\newline \rule{15.5cm}{0.3mm}
+\vspace{0.1mm}
+\newline {\bf MANUAL -- DESCRIPTION OF MOMF SOFTWARE}
+\newline \rule{15.5cm}{0.3mm}
+\newline 2001 - Version 3.4
+\vspace{3cm}
+\Huge
+\newline {\bf MOMF 3.4}
+\vspace{3cm}
+\normalsize
+\newline {\bf Hans Kjeldsen and S{\o}ren Frandsen}
+\vspace{6mm}
+\newline {\bf hans@obs.aau.dk,srf@obs.aau.dk}
+\vspace{4mm}
+\newline {\bf Institute of Physics and Astronomy}
+\vspace{1mm}
+\newline {\bf Aarhus University}
+\vspace{1mm}
+\newline {\bf Langelandsgade}
+\vspace{1mm}
+\newline {\bf DK-8000 Aarhus C}
+\vspace{1mm}
+\newline {\bf Denmark}
+\vspace{5mm}
+\newline {\bf Contributions from Torben Arentoft and Martin R. Knudsen are acknowledged}
+\normalsize
+\newpage
+\section{The MOMF software}
+MOMF was first developed in 1989--1991 as a small software package 
+written in
+FORTRAN on a UNIX computer. It has been modified several times.
+This release adds the possibility to read FITS files directly
+and a new FIND routine, which is faster and more complete, we hope.
+The present version also include earlier modifications to
+make it easier to use on a cluster of workstation. A few minor changes
+has been included, but functionally there are no major changes.
+The package is mainly built to solve 
+the
+specific problems related to time-resolved CCD photometry, and therefore
+MOMF is designed for handling large numbers of CCD frames.
+The scripts for time series photometry are run in a batch-like
+mode,
+because it takes quite a long time to run the photometry program
+for e.g. 500 stars on 350 frames. The present version has been reorganized
+so that it is prepared to run in parallel, using PVM, 
+on a number of workstations or
+on a parallel computer. The parallel version has not been produced yet, but
+it is the plan to offer such a parallel implementation as well.
+All the major parts of the reorganization of the code has been
+done already, and it is a minor job to write the parallel version.
+The different time series scripts take, as input, a
+number of CCD frames which contains the photometry for one cluster/field.
+The output from running all the scripts is light curves for the
+stars in the cluster/field together with error/noise estimates for each star.
+\section{MOMF reduction techniques}
+In time series observations
+the same area is observed for up to 7--8 hours throughout the
+night, which results in about 500 CCD frames (depending on the
+exposuretime) for each object/field 
+per night.
+It is not a simple problem to reduce such a large number of 
+CCD frames, but inspired by earlier reductions (Frandsen \& Kjeldsen,
+1988, 1990, Kjeldsen \& Frandsen, 1989) where the 
+DAOPHOT package (Stetson, 1987)
+was used, we have developed software to reduce this kind of data.
+The software, called MOMF (Multi Object Multi Frame photometry), has been
+installed on the computer systems in Aarhus (HP, SGI) as well as on the HP 
+computer
+at Nordic Optical Telescope on La Palma and on the mc7 Sun computer-system at
+European Southern Observatory (ESO), Garching in Germany.
+Data reductions have been made at all these institutions (see e.g. 
+Kjeldsen and Frandsen, 1992 and Jones {\em et al.}, 1992).
+As a part of the following paper we have described the techniques 
+used
+to optimize the CCD reductions by use of the MOMF photometric 
+package,
+\begin{itemize}
+\item Kjeldsen, Hans \& Frandsen, S{\o}ren., 1992,
+ ``High-precision time-resolved CCD photometry",
+{\em Publ. of the Astron. Soc. of the Pacific},
+{\bf 104}, 413
+\end{itemize}
+The following sections will give only a brief description of the
+reduction techniques as details can be found in the paper
+(Kjeldsen and Frandsen, 1992).
+\subsection{High-precision time-resolved CCD photometry}
+Before deciding what kind of procedures MOMF was to contain, we
+tried to estimate the noise level in different algorithms. Later in the
+process, we also used synthetic images to compare {\em input 
+magnitudes}
+and {\em output magnitudes} and finally we used
+real images to compare theoretical
+noise with observed noise. Apparently we have understood the main 
+part of the noise.
+There were, at least, two reasons for
+making special software for time series reductions of CCD frames,
+instead of using one of the many photometry packages, which have been available 
+since the early eighties e.g. ROMAFOT (Buonanno {\em et al.} 1983) and
+DAOPHOT (Stetson, 1987). First of all, none of these packages could
+be directly used to construct light curves for many stars in a way we
+wanted.
+In addition both ROMAFOT and DAOPHOT are intended for crowded
+field photometry (globular clusters), which could introduce some 
+additional errors when working
+in semicrowded and noncrowded fields, such as open clusters.
+ 
+\section{Time series photometry}
+Once we are through the preliminary steps (basic reductions: Bias, 
+clean, flat
+fields, cosmic rays etc.), we
+can proceed to the specific jobs for time series
+photometry. 
+The reduction procedure is as follows
+\begin{itemize}
+\item One image is selected as a reference image. Then a
+FIND routine is run on the
+reference image and useful reference stars are selected 
+on the frame.
+\item Construction of a {\em sum image} containing the
+sum of some or all images in the time series.
+In order to correct for
+the tracking errors, the pixel values are moved before the 
+summation.
+The offset is determined by use of the reference stars.
+\item A new run of FIND is used on the
+sum image to detect as many stars as possible. Synthetic images
+have been used to check the FIND algorithm.
+Useful PSF stars are selected on the sum image.
+\item The main MOMF programmes are the scripts for 
+making
+the photometry. These scripts use the combined PSF/AP
+method.
+The output from these programmes is, apart from lists of
+photometry for each frame, light curves for the individual stars.
+\end{itemize}
+
+It is not always a good idea to do the sum image. It takes time and
+if some images are of poor quality the sum is no better than a
+good image. An option has been included in the new version to
+leave out the process of summing and redetermining the position
+of objects and PSF stars for the time series. You just call another
+script.
+\subsection{The sky background}
+An accurate determination of the sky background is extremely
+important for accurate photometry and as noise calculations shows,
+this is especially the case for the fainter stars (discussed by Howell, 
+1989).
+There are two main techniques to determine 
+the value of the sky background,
+global sky determination and local sky
+determination.
+ 
+The global sky determination is a global determination of the 
+background,
+where the sky value is described by a simple, slowly changing, 
+function of
+the position in the field, e.g. a tilted plane. This can be a
+precise sky determination, but the problem is if the sky background
+can be described by a simple function.
+ 
+We talk about a
+local sky determination, when the sky background is calculated 
+from the pixels around the star. In a field where all the stars are
+single stars and no crowding is present, the local determination gives 
+precise
+values (tested on synthetic images). However, some stars are not 
+single
+stars, and there might be faint stars near some of the stars, which
+can destroy the local determination.
+ 
+The sky background in the MOMF photometry scripts is a
+local determination (with a possibility to select a global
+determination), but we have tried to
+remove all {\em known} objects from the
+background before we calculated the value for the background.
+We have tested
+3 different methods to determine the background value after
+removing known objects and
+they seem to give almost the same result. 
+ 
+\subsection{MOMF Photometry --- General Philosophy}
+From calculations of the intrinsic noise in different photometric
+methods,
+it is clear that
+for non- or half crowded photometry, PSF fitting is the most precise
+method for faint stars and aperture photometry is the most
+precise method (if no neighbouring stars are present) for brighter 
+stars.
+In order to benefit from these conclusions and try to avoid some of 
+the
+other sources of noise (e.g. neighbouring stars, bad star coordinates 
+and
+bad PSF) we intended to develop a general method which {\em 
+combines}
+the ideas of aperture photometry and PSF fitting in order to
+get as low a noise as possible. As a general criteria the scripts had 
+to
+be fast and without too much
+interactive input in order to be useful for time series calculations.
+
+
+
+\subsection{MOMF Photometry --- Combined PSF/AP}
+The combined aperture and profile fitting scripts (PSF/AP routine) 
+made for MOMF work in the following way:
+\paragraph{Point Spread Function.}
+From the PSF stars found on the {\em sum image} the PSF is 
+calculated and the result is stored as a two component model: (1) A 
+description (non-Gaussian) of the stellar core, and (2) a table 
+containing the residuals, used as corrections from the stellar core 
+description. It is a fully empirical PSF.
+\paragraph{Local sky background determination I.}
+For each star the sky background is found, using the previously 
+described
+sky routine, but without corrections for known {\em fainter} 
+neighbouring stars.
+In this first estimate we only remove light from neighbouring stars, 
+which
+are brighter than the present star. This
+sky value is only used for the profile fitting.
+\paragraph{PSF photometry.}
+Using the empirical PSF, profile fitting and PSF photometry is
+done for each star on the frame. Starting with the brightest star on 
+the frame,
+we remove the stars from the frame, when the photometry is done
+(using the profile fit). This routine will slowly
+clean the image for detected stars, and the PSF photometry will, 
+therefore, be
+affected only by fainter stars than the present star.
+\paragraph{Local sky background determination II.}
+In the clean frame a second background determination is done, again
+using the previous described sky routine. The sky value is now much 
+more
+precise and not affected by detected stars.
+\paragraph{Aperture photometry corrections.}
+In order to correct for errors introduced by errors in the PSF, we
+finally correct the PSF magnitude by use of aperture photometry.
+As the important errors normally occur near the centre of the star
+where the signal is largest, we only have to use small apertures
+in order to correct the magnitude. Only for bright stars
+will large apertures improve the precision. We have used 6 different
+apertures scaled with the frame seeing in order to select the {\em 
+best}
+aperture later in the reduction procedure.
+ 
+\subsection{MOMF Photometry --- Error elimination}
+\paragraph{The noise}
+Because we are able to use different apertures, the noise in the
+PSF/AP photometry will always be lower or equal to the noise
+introduced by using PSF or Aperture photometry alone. For bright
+stars, big apertures might give the best result, but for faint stars,
+small apertures might be best.
+\paragraph{Neighbouring stars}
+Because we make the final aperture photometry in
+the clean frame, errors introduced by neighbouring stars (if
+not very crowded) will be corrected by the final aperture routine.
+Compared to normal profile fitting, especially the faint stars will
+also be less affected by neighbouring stars using MOMF.
+\paragraph{Determination of sky background}
+For obvious reasons we are in a better position to find the {\em
+correct} value for the sky background, when working in the clean
+image.
+\paragraph{Bad centre coordinates and the PSF}
+Again, due to the final aperture photometry corrections, we have
+a chance to correct errors introduced by the profile fitting 
+(e.g. fitting errors and PSF changes over the field) and
+errors introduced by
+bad coordinates for the star position. From the clean images 
+it is apparent
+how difficult it is to
+calculate the correct light level all over the profile.
+
+\subsection{The PSF model}
+Before we began to describe the PSF model for MOMF, we studied
+different PSF models used in crowded field photometry (Stetson 
+1987,
+Buonanno {\em et al.} 1983). The MOMF PSF model does not
+differ in idea from the models described in these photometry 
+packages,
+however, we did not make a very restricted description of the stellar 
+core.
+ 
+The PSF is defined as a two component model: (1) a core description
+and (2) a residual description. Apart from a scaling parameter 
+($ADU_{0}$)
+for the profile the two components are described as
+\paragraph{PSF Core.}
+If $r$ is the radius from the centre position and $S(r)$ is a
+function (in case of a Gaussian core profile it is a constant), we
+describe the PSF core as
+\begin{equation}
+ADU_{core} (r) = ADU_{0} \cdot \exp ( \frac {-r ^{2} }{S^{2} (r) } )
+\end{equation}
+\paragraph{PSF residuals.}
+If we define $z = x - x_{0}$ and $w = y - y_{0}$, where $(x_{0} , 
+y_{0})$
+is the centre position, the PSF residuals are described as a
+look up table containing additive corrections from the
+PSF core and the actual observed PSF
+\begin{equation}
+ADU_{residual} (z,w) = ADU_{0} \cdot R(z,w)
+\end{equation}
+\paragraph{Total PSF}
+The PSF is then described by $ADU_{0}$, $S(r)$,  $R(z,w)$ and the
+centre position $(x_{0} , y_{0})$. The PSF in
+each point is found as $ADU_{core} + ADU_{residual}$.
+
+\subsection{Obtaining the PSF}
+The PSF is obtained from observed stars, and the PSF is
+described empirically in terms of $S(r)$ and $R(z,w)$.
+We compute $S(r)$ and $R(z,w)$ for each PSF star, and the final
+model contains {\em clean} mean values for these parameters.
+$S(r)$ and $R(z,w)$ are found as follows.
+
+For each PSF star we first estimate a value for $ADU_{0}$. After that
+we calculate values for $S(r)$ using
+\begin{equation}
+S(r) =  r \cdot ( \ln ( ADU_{0} / ADU ) )^{- \frac{1}{2} } 
+\end{equation}
+for different $r$ values,
+and finally we make the look up table of residuals
+\begin{equation}
+R(z,w) = ADU / ADU_{0} - \exp ( \frac {-r ^{2} }{S^{2} (r) } )
+\end{equation}
+ 
+\subsection{Output from MOMF}
+The total output from MOMF comprises tables of raw photometry for 
+each
+star, tables of relative photometry (corrected relative to a
+calculated mean magnitude for each frame) for each star, tables of 
+colour/magnitude relative photometry (corrected relative
+to stars with almost same colour and magnitude) and tables
+for {\em total} and {\em internal} rms noise.
+ 
+The {\em total} rms noise ($\sigma _{total}$) is simply $\sigma$ rms 
+for
+the relative photometry,
+while the {\em internal} rms noise ($\sigma _{internal}$) is 
+calculated 
+from the difference between neighbouring points on the light curve.
+$\sigma _{internal}$ is found as
+\begin{equation}
+\sigma ^{2} _{internal} =  \frac {\sum _{i=1} ^ {N-1} ( m_{i} - m_{i+1}
+) ^{2} } {2(N-1)}
+\end{equation}
+where $N$ is the number of points on the light curve and $m_{i}$ 
+and
+$m_{i+1}$ are, respectively, point number $i$ and $i+1$ on the curve.
+The {\em internal} noise tells about the intrinsic noise and can be
+compared with the theoretical noise calculations.
+If we compute the ratio between {\em total} and {\em internal} 
+noise, it gives
+a direct indication of stars which shows {\em a too high} noise e.g.
+variable stars. We call this ratio (detection level) for the $d$ $value$
+and define it as
+\begin{equation}
+d = \sigma _{total} /  \sigma _{internal}   
+\end{equation}
+The d value is used to provide a preliminary detection of variable
+stars (it has been used on NGC 6134 as well as other clusters, see
+Frandsen and Kjeldsen, 1992).
+\section{The MOMF Environment / 2-Byte Integers}
+This version of MOMF (3.*) contains no software for the basic reductions
+(preprocessing) such as bias- and dark-corrections, flat fielding,
+corrections for cosmic rays and nonlinearity-corrections. The MOMF
+version 3.* contains only the special photometric reduction software,
+for doing multi object photometry on a large number of frames. Therefore
+preprocessing has to be done by use of local existing software (e.g.
+IRAF, MIDAS, IDL etc.). MOMF version 3.* can only process frames stored
+in 2-Byte Integer-format and having no individual headers or frames in FITS
+format. It
+requires a special routine for the transformation from other types of
+frame-formats (e.g. MIDAS, IRAF) into this simple MOMF Environment.
+Users of MOMF are recommended to remove bias-scan areas before the
+frames are processed by MOMF. MOMF version 3.* is optimized to process
+frames having a typical value for the stellar-profile-FWHM between 3 and
+7 pixels. If the frames show a higher or lower value for the FWHM, the
+user is recommended to resample the frames in order to reach a FWHM
+within the given limits. This resampling has to conserve the local-flux
+in the frames. All frames shall be stored in the image directory
+defined in an environment vareiable and
+we recommend to use simple names, such as im.001, im.002, im.003... im.117 or
+image1, image2, image3... image56, A01, A02, A03 etc..
+Information
+on the frame-size must be stored in the FORMAT file.
+\vspace{4mm}
+
+If your images contain data values that has the 16'th bit set, i.e.
+values greater than 32767, then you must either rescale them to 15
+bit numbers. The FORMAT file contain a last parameter, which will
+let MOMF do this for you. Zero means no rescaling, and the program
+will check that this is correct in the sense that only a few
+negative values occur -- negative sky values due to statistics.
+If the absolute value of the parameter is set to 1, negative numbers are understood as
+high values (unsigned integers) and the image is rescaled to fit into the
+positive range. If the absolute value of the parameter is set to 2, negative numbers
+are accepted as negative numbers, but the image is rescaled
+to fit the positive 15 bit range.
+Finally, if this parameter is negative, the images are assumed to be in
+FITS format, if positive or zero the image is in raw 2-byte integer format.
+\begin{itemize}
+\item
+scale = 1:~~~~~Raw image with 16 to 15 bit rescaling
+\item
+scale = -3:~~~~~FITS image, no rescaling
+\end{itemize}
+\vspace{10mm}
+\Large
+
+{\bf References}
+\normalsize
+\begin{itemize}
+\item
+Buonanno, R., Buscema, G., Corsi, C.E., Ferraro,
+I., Iannicola, G.  1983,
+{\em Astron. Astrophys.,} {\bf 126,} 278
+\item
+Frandsen, S{\o}ren \& Kjeldsen, Hans, 1988, in
+{\em Proc. Symp. on Seismology of the Sun \&}
+{\em Sun like Stars,}
+Tenerife, 26--30 September 1988, ESASP 286, p. 575
+\item
+Frandsen, S{\o}ren \& Kjeldsen, Hans, 1990,
+{\em Proc. Confrontation between Stellar}
+{\em Pulsation and Evolution}
+Bologna, 28--31 May 1990,
+{\em Conference Series of the Astronomical Society of the Pacific.}
+Vol. 11, 312--315.
+\item
+Frandsen, S{\o}ren and Kjeldsen, Hans, 1992, {\em Observational Constraints 
+on
+mode excitation in $\delta$ Scuti stars in open clusters}
+To appear in: Proc. IAU Coll. 137, Inside the Stars.
+{\em Conference Series of the Astronomical Society of the Pacific.}
+\item
+Howell, S. B., 1989, {\em Pub. Astron. Soc. Pacific.,} {\bf 101}, 616
+\item
+Jones, A., Kjeldsen, H., Frandsen, S.,
+Christensen-Dalsgaard, J., Hjorth, J., Sodemann
+M., Thomsen, B. \& Viskum, M. 1992, ``Observations of
+$\delta$ Scuti stars from {\AA}rhus",
+{\em Proc. GONG 1992},
+Boulder, CO, 11--14 August, 1992, to be published in
+{\em Conf. Ser. Astron. Soc. of the Pacific.} - 1992.
+\item
+Kjeldsen, Hans \& Frandsen, S{\o}ren, 1989,
+{\em ESO Messenger} {\bf 57}, 48
+\item
+Kjeldsen, Hans \& Frandsen, S{\o}ren., 1992,
+{\em Publ. of the Astron. Soc. of the Pacific},
+{\bf 104}, 413
+\item
+Stetson, P. B. 1987, DAOPHOT user's manual, DAO \& {\em
+Pub. Astron. Soc.}
+{\em Pacific}, {\bf 99,} 191
+\end{itemize}
+\newpage
+\section{The MOMF Manual}
+We can now continue to give a description of how to run the MOMF 3.0
+software. In the following we give the name of the scripts (routines)
+available in
+the present version of MOMF and describe how to use these scripts. The
+scripts are given in the order they have to be run when an actual
+reduction is taken place. Each routine contains the following
+descriptions,
+\begin{itemize}
+\item {\bf Before the run}, which gives information on what shall be done
+before the routine is used.
+\item {\bf Note}, which gives warnings and additional information
+\item {\bf Input}, which describe the input you have to give the routine
+while it is running.
+\item {\bf Output}, which describe the output from the program.
+\item {\bf See also}, which gives the name of other important scripts, which
+should be known to exist before the present routine is used.
+\end{itemize}
+
+In this version 3.0 a major reorganization of the scripts has been made.
+There are now only three main scripts plus one alternative one, which
+you call one after the other (MOMF01, MOMF02, MOMF03 and the alternative
+script MOMF01.nosum). The main scripts call a large set of
+smaller scripts and FORTRAN programs.
+
+When you install MOMF a directory is created called 'stdfil'.
+Here are models for all the files that you need and we recommend 
+to copy this set to a working directory. The initial setup thus
+consists in the following procedures:
+\begin{enumerate}
+\item Define three or four environment variables:
+\begin{itemize}
+\item {\bf MOMF\_PROG} The directory where you installed the software.
+\item {\bf MOMF\_DATAIN} The directory where your raw images are.
+\item {\bf MOMF\_DATAOUT} The directory where your results are stored.
+\item {\bf MOMF\_GRAD} If defined the new FIND routine is used.
+\end{itemize}
+\item Create a working directory and copy all files from the 'stdfil'
+directory to your working directory. Some of the results will appear
+in this directory, but most, including light curves, will be written
+in the output directory defined by the variable. The main program scripts
+are among the files copied.
+\item Edit the files in the working directory:
+\begin{itemize}
+\item {\bf FORMAT} Defines the frame size and format
+\item {\bf APrad} Defines the apertures used by MOMF and the maximum offset of a frame
+\item {\bf PSFparam} Defines the PSF parameters to be used
+\item {\bf SKYparam} Defines the sky parameters
+\item {\bf input.SUM} The list of images for locating objects
+\item {\bf input.MOMF} The full list of frames in the time series
+\end{itemize}
+\end{enumerate}
+Often the only changes to be made are in FORMAT and the two 'input'
+files.
+
+\newpage
+\noindent {\em Multi Object Multi Frame photometric package (MOMF) 
+- Institute of Astronomy}
+\newline \rule{15.5cm}{0.3mm}
+\vspace{0.1mm}
+\newline {\bf MOMF01 (MOMF01.nosum)}
+\newline \rule{15.5cm}{0.3mm}
+\newline {\em Run the FIND routine on the reference frame - selection of
+reference stars - Make a sum image and repeat the process on this image}
+\vspace{4mm}
+\newline {\bf Before the run}
+\begin{itemize}
+\item Check that all frames is stored in the required format (see
+description in section 5 of this Manual).
+\item Check that frame-size information is stored in the FORMAT file.
+\item Check that the image rescaling parameter is defined (last line)
+\item Check that you are in the working directory
+\item Define the environment parameter MOMF\_GRAD, if you want the fast FIND.
+\item Be sure that you have all required information needed as input
+(see description below).
+\item Use this routine before any other
+\end{itemize}
+\vspace{2mm}
+{\bf Note}
+\newline MOMF01.nosum will stop after the first FIND and generate the
+same files needed later as does MOMF01. The new 'gradfind' routine 
+(see http://astro.ifa.au.dk/$\sim$vp4/projekt) reads
+four additional parameters from the file {\tt find.param}. These parameters
+are {\tt sigma}, {\tt segments}, {\tt cosmic} and {\tt 
+skyback}. {\tt sigma} sets the sensitivity level of a test to screen
+against non-stellar objects, {\tt segment}
+divides the image in subareas but the parameter is not used in this
+version of MOMF, cosmic regulate the test for cosmic ray traces,
+and {\tt skyback} defines a value for the sky level only used in the
+screening for cosmic events. 
+Set {\tt sigma} to below zero to disable the test and start off
+with 1 if you want to see what happens, when applying the test.
+To disable the test for cosmic events set {\tt cosmic = 0} and
+to have a test try {\tt 0.3}. To choose {\tt skyback} you need
+to inspect your image.
+\vspace{4mm}
+\newline {\bf Input}
+\begin{itemize}
+\item Give the approx. seeing - FWHM - in pixels (e.g. 4.3).
+\item Give a detection-level (sigma-like detections) (e.g. 8).
+\item Then the routine will start to detect stars on the reference
+frame. Some information is given on the screen. Of main interest is
+column no. 3 (number of detected stars), column no. 6 and 7 (the frame
+coordinates), column no. 8 (relative magnitude) and column no. 10
+(approx. skybackground in the distance: 10-15 pixels from the star).
+\item After the detection of stars, you will be given a possibility to
+edit the coordinate file, by use of the vi-editor (Type [RETURN]).
+leave the vi-editor by typing {\em :wq}
+\item Then the program will ask for a saturation-limit in ADUs.
+\item Then you must choose the number of PSF stars you want ($\leq 10$).
+\item After this, the selection of reference stars for
+XY-offset calculations and for defining the ensemble average will
+be done. The program will show a number of stars which might be useful,
+what you have to do is typing 1 (=yes) og 0 (=no) to the questions.
+Or if you want to stop choosing stars, type 2 (=stop).
+Up to 10 stars will be selected for the purpose.
+At this point you should notice, whether the width of the stellar
+images fill out the area displayed. In case they do, you should
+consider starting all over after rebinning the images to reduce
+the size of the stellar images (in pixels)
+\item After the selection of suitable reference stars, you will be given
+a possibility to enter a so-called Bad-pixel image (containing 1 in the
+good pixels and 0 in the bad). If you have such an image/frame type 1
+(=yes) and give the name og the frame, otherwise type 0 (=no).
+\item The MOMF01.nosum script will stop at this point and you are ready
+to continue with the next script MOMF02.
+\item In determining the offsets of the images to be part of the
+sum image you need to type how many iterations to go through.
+The program gives for each image some information about the coordinates
+of the PSF stars. And the mean of all stars to be used to calculate the offset.
+\item The search for objects and PSF stars then continues as before
+and the same information needs to be given like detection level etc.
+\item Finally you are asked for the maximum offset to be permitted,
+the saturation level and the script finishes with the PSF star
+selection as before.
+\end{itemize}
+\vspace{2mm}
+{\bf Output}
+\vspace{4mm}
+\newline The result of running MOMF01 is a set of files, where you might
+be interested in inspecting a few of them.
+{\sl coor.SUM} contains information about the stars in the frame.
+{\sl PSFstars} give the list of PSF stars. {\sl im.SUM} is the raw sum image.
+The last file does not exist of course if you used the script
+MOMF01.nosum.
+\newpage
+\noindent {\em Multi Object Multi Frame photometric package (MOMF) 
+- Institute of Astronomy}
+\newline \rule{15.5cm}{0.3mm}
+\vspace{0.1mm}
+\newline {\bf MOMF02}
+\newline \rule{15.5cm}{0.3mm}
+\newline {\em The main photometric routine - PSF/AP photometry (MOMF)}
+\vspace{4mm}
+\newline {\bf Before the run}
+\begin{itemize}
+\item Check that you are in the working directory
+\item Use this routine after MOMF01 or MOMF01.nosum
+\item If you are rerunning MOMF02 remove the output files from
+the output directory (defined by \$MOMF\_DATAOUT)
+\item Check and change if you like
+the input in the files {\em APrad, SKYparam} and {\em
+PSFparam}. (see description below).
+\end{itemize}
+\vspace{2mm}
+{\bf Note}
+\newline MOMF02 will generate the photometric output from the
+MOMF-run in the output directory as defined  by the variable
+MOMF\_DATAOUT. Main output are the files \{frame\}.
+The files {\em APrad, SKYparam} and {\em
+PSFparam} contains the main input for the MOMF scripts.
+The list of frames to be processed are in the file {\em input.MOMF}.
+\vspace{4mm}
+\newline {\bf Input}
+\begin{itemize}
+\item The MOMF02 needs input from the files {\em APrad, SKYparam} and {\em
+PSFparam} as well as some of the output files from MOMF01.
+\item APrad contains the following information: Radius of
+aperture-radius used by the MOMF-aperture-corrections. These scale with
+the FWHM. The file shall contain 6 increasing numbers. Optional one can define
+the size of the search area for the displacement of frames relative to
+the reference image. If the seventh number is missing the program 
+defaults to 40.
+\item SKYparam contains the following information: Radius of inner-
+and outer-limit for the sky area. The sky-multiplication value can be
+used to select a global sky-value, if the sky-background is found on
+global basis and subtracted from the frame. Then a sky-multiplication of 0.0
+will take 0 as the sky-level.
+\item PSFparam contains the following information: Radius of
+PSF-outer-limit in pixels. If this radius is larger than 26 pix. the PSF
+will contain two residual tables - a small and a large - containing
+residual description of inner and outer part of the PSF. A large radius
+will give longer CPU-time per star. The PSF-residual can be weighted by
+use of the PSF-core description in a given exponent (power of PSF). If
+the second line in the file contains a 1 (=yes) this core control is in
+action with an exponent given in the next line. The result of the
+{\em image-clean}
+procedure can be stored in a file empty.frame (however this takes
+extra time and all frames will be given this name - deleting the
+previus empty.frame).
+\item 
+The program is fully automatic. When running, the program gives
+you some information on the screen. First it gives information on the
+PSF-calculation. Then information on the PSF photometry, the combined
+PSF/AP photometry and final information on
+the output stored in the \{name\} files.
+\end{itemize}
+\vspace{2mm}
+{\bf Output}
+\vspace{4mm}
+\newline The result of running MOMF02 is a number of files in the
+output directory (see MOMF\_DATAOUT) containing
+the photometry. Photometry for each frame is given in the files
+\{frame\}. The first line in these files gives the
+apertures used for the MOMF aperture-corrections. 
+The second line gives for each aperture the zero point magnitudes
+for correction to flux in ADU's:
+\begin{equation}
+-2.5*\log_{10}(flux(ADU)) = magnitude - zero point
+\end{equation}
+where the $zero point$ is from the second line and the magnitude from
+line 3 and on (see below). The $zero point$ is defined as
+\begin{equation}
+zero point = 2.5*\log_{10}( \Sigma F(PSF)_i)
+\end{equation}
+where $F(PSF)_i$ is the flux in ADU's of the PSF stars.
+
+From line 3 and on the
+photometry for each star is shown (number, X, Y, magnitude 1 to 6).
+In the file {\sl basic.PHOT} and {\sl offset.PHOT} additional 
+information on each
+frame is shown. The file {\sl basic.PHOT} gives XY-offset values,
+skybackground in ADU/pix and FWHM-seeing in pix. The file {\sl offset.PHOT}
+gives the XY-offset, the number of stars and the name of the file
+containing the photometry for each frame. 
+\newpage
+\noindent {\em Multi Object Multi Frame photometric package (MOMF) 
+- Institute of Astronomy}
+\newline \rule{15.5cm}{0.3mm}
+\vspace{0.1mm}
+\newline {\bf MOMF03}
+\newline \rule{15.5cm}{0.3mm}
+\newline {\em This is post-processing program}
+\vspace{4mm}
+\newline {\bf Before the run}
+\begin{itemize}
+\item Check that you are in the working directory
+\item Use this routine after MOMF02
+\item If you rerun the routine remove the directories ABS and REL
+in the output directory defined by \$MOMF\_DATAOUT
+\end{itemize}
+\vspace{2mm}
+{\bf Note}
+\newline MOMF03 will sort the photometric output from the
+MOMF02 run in the output directory as defined  by the variable
+MOMF\_DATAOUT. Main output are 
+the files ABS/STAR.\#\#\# and
+REL/STAR.\#\#\#. 
+\vspace{4mm}
+\newline {\bf Input}
+\begin{itemize}
+\item The MOMF03 needs input from the files produced by MOMF02 for 
+each frame in the output directory.
+\item In addition a file is needed with the name {\it MOMF.ref} in your
+working directory, which defines the way the ensemble of reference
+stars are defined, and the way weights defining the ensemble average
+are calculated. First line contains an integer flag, where the choices
+are -1: list of stars that follow should be excluded from the ensemble,
+0: include all stars, 1: include stars in the list. The following lines
+give the numbers of stars to be excluded/included. If the flag is
+zero the lines following the first line are ignored. The numbers 
+for the stars can
+be chosen from the file {\it coor.SUM}.
+The weights calculated by MOMF03 are based on the scatter about the
+mean derived for each star. When all stars are included in the ensemble
+average, the weights emphasize the bright stars below the normal
+statitistics. If a smaller set
+of stars are selected, the weights increase the importance of the
+fainter stars above the normal statistics.
+For rich fields with hundred or more stars, we recommend to
+choose
+the full ensemble average. For smaller ensembles the variable(s)
+might have a disturbing influence and should be excluded from the
+set of reference stars.
+\end{itemize}
+\vspace{2mm}
+{\bf Output}
+\vspace{4mm}
+\newline The result of running MOMF03 is a number of files containing
+information about individual stars.
+containing the photometry for each frame. In the files ABS/STAR.\#\#\#
+and REL/STAR.\#\#\#
+photometry for each individual star can be found (ABS/STAR.\#\#\# -
+raw magnitudes - and REL/STAR.\#\#\# - relative magnitudes). The files
+SCAT.\#\#\# contains values for {\em magnitude minus mean divided by the
+internal scatter}. The files REL/scatter... contains information on the
+noise and error calculations, in the format: number, best aperture,
+magnitude, number of frames used to calculate the rms-scatter, external
+scatter (rms), number of points used to calculate the point-to-point
+scatter, the point-to-point scatter, and the d-value.
+\newpage
+\end{document}

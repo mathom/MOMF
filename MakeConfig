@@ -1,0 +1,15 @@
+F77=g77
+OPTIONS= -fbounds-check
+
+FC=$(F77) $(OPTIONS)
+
+# general rules
+all:	$(BINARIES) copyfiles
+
+copyfiles: $(BINARIES)
+	@cp -a $(BINARIES) $(BIN)
+
+clean:
+	@rm -f $(BINARIES) *~ core || true
+	@for each in $(BINARIES); do rm -f $(BIN)/$$each ;done || true
+

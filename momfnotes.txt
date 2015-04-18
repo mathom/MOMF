@@ -1,0 +1,150 @@
+;Retreive the MOMF package
+; made tarfile from ~srf/MOMF/ myself
+; ftp and extract
+
+;Set environments in .cshrc
+vi ~/.cshrc
+setenv MOMF_PROG /CCD3/martinrk/MOMF
+setenv MOMF_DATAIN /CCD3/martinrk/MOMF/in
+setenv MOMF_DATAOUT /CCD3/martinrk/MOMF/out
+setenv MOMF_GRAD /CCD3/martinrk/MOMF/in
+
+vi MakeConfig
+cp Makefile.linux Makefile
+
+;Adjust calcsize
+vi common/calcsize.f
+
+;Adjust Makefiles
+; change f77 to g77 and remove UNIX options and 
+; add option -fbounds-check (crucial for Linux) and
+; use local FITSIO lib.
+vi m01/fortran/Makefile
+vi m02/fortran/Makefile
+vi m03/fortran/Makefile
+
+;edited m01/fortran/gradfind.f
+;edited m01/fortran/Dcoor.f
+;edited m03/fortran/MAGvariab.f
+;edited m03/fortran/MAGmean.f
+;edited m03/fortran/MAGvariab.f
+
+;Run make in all fortran dirs
+
+
+;Put 36 fits images in in/
+; RUN NEW MOMF version
+;edit FORMAT (-3) 1648 1651 2
+;MOMF01.nosum
+; 364 stars
+;MOMF02
+;MOMF03
+; move out/* away to enable new run
+
+; RUN OLd MOMF version
+;construct the raw files
+;.r /CCD3/martinrk/N6231/red/fits2momf
+;erom,infits,file='fits.list',/sep
+;fits2momf,infits,'/CCD3/martinrk/MOMF/in/'
+;edit FORMAT (0) 1648 1651 2
+;edit input.MOMF to list the raw files
+; change .cshrc so env matches old MOF version and source it
+;MOMF02
+;MOMF03
+
+;COMPARISON
+;slight differences in outputfiles
+
+sp,3,2
+sp,0,file='/CCD3/martinrk/MOMF/comp148.ps'
+!p.multi=[0,1,2]
+erom,d0,d1,d2,d3,d4,d5,d6,file='/CCD3/martinrk/MOMF/out/fitsrun-3/REL/STAR.148
+f5=d5
+erom,d0,d1,d2,d3,d4,d5,d6,file='/CCD3/martinrk/MOMF/out/REL/STAR.148
+diff=(f5-d5) ;0.011023611
+symbols,1,1
+plot,f5,psym=8,xr=[-5,47],yr=[0.04,-0.03],xtit='Image number',ytit='Mag',tit='148'
+xyouts,37,0.0,'FITS version'
+oplot,d5,psym=1
+xyouts,37,-0.012,'RAW version'
+plot,diff,psym=4,xr=[-5,47],yr=[0.010,0.012],xtit='Image number',ytit='!7D!3Mag = M!DRAW!N - M!DFITS!N'
+momdiff=moment(diff)
+print,'The difference is '+strmid(strn(1e3*momdiff(0)),0,5)+' pm '+strmid(strn(1e3*sqrt(momdiff(1))),0,4)+' mmag'
+xyouts,25,0.0103,'!7D!3Mag = '+strmid(strn(1e3*momdiff(0)),0,5)+'!9+!3'+strmid(strn(1e3*sqrt(momdiff(1))),0,4)+' mmag'
+device,/close
+
+sp,0,file='/CCD3/martinrk/MOMF/comp165.ps'
+!p.multi=[0,1,2]
+erom,d0,d1,d2,d3,d4,d5,d6,file='/CCD3/martinrk/MOMF/out/fitsrun-3/REL/STAR.165
+f5=d5
+erom,d0,d1,d2,d3,d4,d5,d6,file='/CCD3/martinrk/MOMF/out/REL/STAR.165
+diff=(f5-d5) ;0.011023611
+symbols,1,1
+plot,f5,psym=8,xr=[-5,47],yr=[0.04,-0.03],xtit='Image number',ytit='Mag',tit='165'
+xyouts,37,0.028,'FITS version'
+oplot,d5,psym=1
+xyouts,37,0.013,'RAW version'
+plot,diff,psym=4,xr=[-5,47],yr=[0.010,0.012],xtit='Image number',ytit='!7D!3Mag = M!DRAW!N - M!DFITS!N'
+momdiff=moment(diff)
+print,'The difference is '+strmid(strn(1e3*momdiff(0)),0,5)+' pm '+strmid(strn(1e3*sqrt(momdiff(1))),0,4)+' mmag'
+xyouts,25,0.0103,'!7D!3Mag = '+strmid(strn(1e3*momdiff(0)),0,5)+'!9+!3'+strmid(strn(1e3*sqrt(momdiff(1))),0,4)+' mmag'
+device,/close
+
+
+sp,0,file='/CCD3/martinrk/MOMF/comp257.ps'
+!p.multi=[0,1,2]
+erom,d0,d1,d2,d3,d4,d5,d6,file='/CCD3/martinrk/MOMF/out/fitsrun-3/REL/STAR.257
+f5=d5
+erom,d0,d1,d2,d3,d4,d5,d6,file='/CCD3/martinrk/MOMF/out/REL/STAR.257
+diff=(f5-d5) ;
+symbols,1,1
+plot,f5,psym=8,xr=[-5,47],yr=[0.590,0.560],xtit='Image number',ytit='Mag',tit='257'
+xyouts,37,3.831,'FITS version'
+oplot,d5,psym=1
+xyouts,37,3.817,'RAW version'
+plot,diff,psym=4,xr=[-5,47],yr=[0.0,0.025],xtit='Image number',ytit='!7D!3Mag = M!DRAW!N - M!DFITS!N'
+momdiff=moment(diff)
+print,'The difference is '+strmid(strn(1e3*momdiff(0)),0,5)+' pm '+strmid(strn(1e3*sqrt(momdiff(1))),0,4)+' mmag'
+xyouts,25,0.003,'!7D!3Mag = '+strmid(strn(1e3*momdiff(0)),0,5)+'!9+!3'+strmid(strn(1e3*sqrt(momdiff(1))),0,4)+' mmag'
+device,/close
+
+sp,0,file='/CCD3/martinrk/MOMF/comp067.ps'
+!p.multi=[0,1,2]
+erom,d0,d1,d2,d3,d4,d5,d6,file='/CCD3/martinrk/MOMF/out/fitsrun-3/REL/STAR.067'
+f5=d5
+erom,d0,d1,d2,d3,d4,d5,d6,file='/CCD3/martinrk/MOMF/out/REL/STAR.067'
+diff=(f5-d5) ;
+symbols,1,1
+plot,f5,psym=8,xr=[-5,47],yr=[7.4,6.0],xtit='Image number',ytit='Mag',tit='067'
+xyouts,37,6.95,'FITS version'
+oplot,d5,psym=1
+xyouts,37,6.8,'RAW version'
+plot,diff,psym=4,xr=[-5,47],yr=[-0.1,0.1],xtit='Image number',ytit='!7D!3Mag = M!DRAW!N - M!DFITS!N'
+momdiff=moment(diff)
+print,'The difference is '+strmid(strn(1e3*momdiff(0)),0,5)+' pm '+strmid(strn(1e3*sqrt(momdiff(1))),0,4)+' mmag'
+xyouts,25,-0.07,'!7D!3Mag = '+strmid(strn(1e3*momdiff(0)),0,2)+'!9+!3'+strmid(strn(1e3*sqrt(momdiff(1))),0,2)+' mmag'
+device,/close
+
+sp,0,file='/CCD3/martinrk/MOMF/comp.ps'
+.r /CCD3/martinrk/MOMF/diffest ;Calculates id,median(mag),mean(diff), stdev(diff)
+res=diffest()
+select=where(res(2,*) ne 0 AND res(1,*) lt 7.2)
+plot,res(1,select),res(2,select),psym=sym(19),yr=[-0.04,0.04],xtit='Magnitude',ytit='!7D!3Mag = M!DRAW!N - M!DFITS!N',xr=[-2,8]
+errplot,res(1,select),res(2,select)-res(3,select),res(2,select)+res(3,select)
+device,/close
+
+sp,3
+==============================
+Testing of which formats are supported:
+Maggen.f (MOMF02) should be run with
+BITPIX    ADUrange  FORMAT
+  16       0-65534    -1
+  32       0-65534    -1
+  32       0-32767    -3
+ -32       0-65534    -1
+Inside the program the dynamic range is 0-32767 no matter the input
+
+
+
+
+

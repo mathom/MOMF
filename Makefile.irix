@@ -1,0 +1,17 @@
+DIRS=\
+ m01/fortran\
+ m02/fortran\
+ m03/fortran
+
+all: fitsiolib
+	(cd m01/fortran; make)
+	(cd m02/fortran; make)
+	(cd m03/fortran; make)
+
+fitsiolib: fitsio/Makefile
+	cd fitsio; make all
+
+clean: 
+	for each in $(DIRS); do (cd $$each; $(MAKE) ) $@ ; done
+	rm -f *~ core *.o
+	cd fitsio; $(MAKE) distclean

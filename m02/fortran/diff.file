@@ -1,0 +1,248 @@
+4c4
+<        parameter (NDIM=2048,NSTARS=2000)
+---
+>        parameter (NDIM=4096,NSTARS=50000)
+8c8
+<         common/cb2/COL,ROW,pfix
+---
+>         common/cb2/COL,ROW,pfix,maxoff
+17d16
+<        integer calcsize
+22d20
+< 
+27c25
+< c   Scaling-values for Aperture photometry
+---
+> c   Scaling-values for Aperture photometry, max offset
+31a30
+> 	  maxoff = 40
+37c36,37
+<           read(54,*)radsc6
+---
+>           read(54,*,end=99)radsc6
+> 	  read(54,*,end=99)maxoff
+39c39
+<           close(54)
+---
+>    99     close(54)
+123c123
+<        Nrecl = calcsize(mmx,mmy)
+---
+>        Nrecl=2*mmx*mmy/4+1
+125c125
+<        open (10,file='im.ZERO',access='direct',form='unformatted',
+---
+>        open (10,file='im.ZERO',access='direct',
+143c143
+< c      open (10,file=name,access='direct',form='unformatted',
+---
+> c      open (10,file=name,access='direct',
+148d147
+< 
+183,185c182
+<        parameter (NDIM=2048,NSTARS=2000,SATLIM=30000.)
+<        integer calcsize
+< 
+---
+>        parameter (NDIM=4096,NSTARS=50000)
+188c185
+<        common/cb2/COL,ROW,pfix
+---
+>        common/cb2/COL,ROW,pfix,maxoff
+191d187
+<        dimension SATARR(1:NSTARS)
+224c220
+<           Nrecl = calcsize(mmx,mmy)
+---
+>           Nrecl=2*mmx*mmy/4 + 1
+233d228
+<        open(44,file='saturated.PHOT',status='unknown')
+279c274,275
+<           coor(2,ncoo2)=coorsum(2,ncoo2)+dy 
+---
+>           coor(2,ncoo2)=coorsum(2,ncoo2)+dy
+>  
+549d544
+< 
+911,919d905
+< 
+< 
+< 
+< 
+< 
+< c ------------------------------------------------------ 
+< c ----------- Begin loop 'ncoo2' ----------------------- 
+< c ----------- loop through all the stars --------------- 
+< 
+920a907
+>  
+1019,1038c1006,1018
+< c ---------------------------------------------------- 
+< c ORIG: if out of image: reset to orig centroid
+< c Changed to use orig coor.
+< c and later set all aperture phot to 99.999
+< c The q[1.6] variables are not being used
+< c ---------------------------------------------------- 
+< 
+< c          if (x1-float(mmx)) 35262,35262,35261
+< c35261     x1=coorsum(1,ncoo2)
+< c          coor(1,ncoo2)=coorsum(1,ncoo2)
+< c35262     if (x1-1.0) 35263,35264,35264
+< c35263     x1=coorsum(1,ncoo2)
+< c          coor(1,ncoo2)=coorsum(1,ncoo2)
+< c35264     if (x2-float(mmy)) 35266,35266,35265
+< c35265     x2=coorsum(2,ncoo2)
+< c          coor(2,ncoo2)=coorsum(2,ncoo2)
+< c35266     if (x2-1.0) 35267,35268,35268
+< c35267     x2=coorsum(2,ncoo2)
+< c          coor(2,ncoo2)=coorsum(2,ncoo2)
+< c35268     continue
+---
+>           if (x1-float(mmx)) 35262,35262,35261
+> 35261     x1=coorsum(1,ncoo2)
+>           coor(1,ncoo2)=coorsum(1,ncoo2)
+> 35262     if (x1-1.0) 35263,35264,35264
+> 35263     x1=coorsum(1,ncoo2)
+>           coor(1,ncoo2)=coorsum(1,ncoo2)
+> 35264     if (x2-float(mmy)) 35266,35266,35265
+> 35265     x2=coorsum(2,ncoo2)
+>           coor(2,ncoo2)=coorsum(2,ncoo2)
+> 35266     if (x2-1.0) 35267,35268,35268
+> 35267     x2=coorsum(2,ncoo2)
+>           coor(2,ncoo2)=coorsum(2,ncoo2)
+> 35268     continue
+1040c1020
+< 
+---
+>  
+1233,1236d1212
+< 
+< c ----------- End loop 'ncoo2' ------------------------- 
+< c ------------------------------------------------------ 
+< 
+1314d1289
+< c --------- NOW for a big loop over all the stars ----
+1370d1344
+< 
+1426,1427d1399
+< 
+< c This format reflects the use of standard AP values - only 4 decimals?
+1478,1479d1449
+< c ----------------------------------
+< c TESTING
+1481,1496d1450
+<             
+<           x1=x45coor(1,n45)
+<           x2=x45coor(2,n45)
+< 
+< c *******SATURATION TESTING within 5x5 box
+<           SATARR(n45)=0   
+<           do 9268 n4=max(1,(nint(x1)-5)),min(mmx,(nint(x1)+5))
+<              do 9267 n5=max(1,(nint(x2)-5)),min(mmy,(nint(x2)+5))
+<                 if (float(image(n4,n5)) - SATLIM) 9266,9264,9264
+<  9264           SATARR(n45)=1
+< c                write(6,9265)'Saturated : ',n45,x1,x2
+< c 9265           format(a12,i5,2f10.2)
+<  9266           continue
+<  9267        continue
+<  9268     continue
+< c *******END SAT TEST
+1498,1500d1451
+< 
+< 
+< 
+1502,1528c1453,1455
+< 
+< c ----------------------------------
+< c *******NOT IN IMAGE TESTING
+< c added 12 lines here
+<  9270           if (x1-1)9271,9271,9272
+<  9271              xq(n46)=99.9999
+<                    go to 9287
+<  9272           if (x2-1)9273,9273,9274
+<  9273              xq(n46)=99.9999
+<                    go to 9287
+<  9274           if (x1-mmx)9276,9275,9275
+<  9275              xq(n46)=99.9999
+<                    go to 9287
+<  9276           if (x2-mmy)9278,9277,9277
+<  9277              xq(n46)=99.9999
+<                    go to 9287
+< c *******SATURATION TESTING
+< 
+<  9278           continue
+<                if (SATARR(n45))9280,9280,9279
+<  9279              xq(n46)=99.9999
+<                 go to 9287
+< c *******END OF SAT AND NOT IN IM. TEST
+< c ----------------------------------
+< 
+<  9280           if (APERTURE(n46,n45))9281,9281,9282
+<  9281              xq(n46)=99.9999
+---
+>  
+>                 if (APERTURE(n46,n45))9281,9281,9282
+> 9281               xq(n46)=99.9999
+1530c1457
+<  9282              APz=2.5*log10(APERTURE(n46,n45))
+---
+> 9282               APz=2.5*log10(APERTURE(n46,n45))
+1532c1459
+<  9287        continue
+---
+> 9287         continue
+1534,1543c1461,1463
+< c *******SATURATION WRITING
+< 92871        if (SATARR(n45))92876,92876,92872
+< 92872        write(6,92873)'Saturated : ',n45,x1,x2
+< 92873        format(a12,i5,2f10.2)
+< 92874        write(44,92875)n45,x1,x2,'  ',stub
+< 92875        format(i5,2f10.2,a5,a20)
+< 92876        continue
+< c *******END OF SAT WRITING
+< 
+< c          write(6,'(i4,2f8.2,6f10.5)')n45,x1,x2,xq(1),xq(2),xq(3),
+---
+>           x1=x45coor(1,n45)
+>           x2=x45coor(2,n45)
+> c          write(6,'(i5,2f8.2,6f10.5)')n45,x1,x2,xq(1),xq(2),xq(3),
+1545c1465
+<           write(22,'(i4,2f8.2,6f10.5)')n45,x1,x2,xq(1),xq(2),xq(3),
+---
+>           write(22,'(i5,2f8.2,6f10.5)')n45,x1,x2,xq(1),xq(2),xq(3),
+1548,1549c1468
+<  9288     continue
+< c ----------------------------------
+---
+> 9288      continue
+1552d1470
+<           close(44)
+1561c1479
+<        open (10,file='empty.frame',access='direct',form='unformatted',
+---
+>           open (10,file='empty.frame',access='direct',
+1624c1542
+<        parameter (NDIM=2048,maxoff=250)
+---
+>        parameter (NDIM=4096)
+1627c1545
+<        common/cb2/COL,ROW,pfix
+---
+>        common/cb2/COL,ROW,pfix,maxoff
+1645a1564,1565
+> 	  write(6,100) maxoff
+>   100	  format('Maximum offset assumed is',i8)
+1709c1629
+<        parameter (NDIM=2048)
+---
+>        parameter (NDIM=4096)
+1711c1631
+<        common/cb2/COL,ROW,pfix
+---
+>        common/cb2/COL,ROW,pfix,maxoff
+1928,1929c1848,1849
+<        include '../../common/rimage.f'
+<        include '../../common/size.f'
+---
+> 	  include '../../common/rimage.f'
+>           include '../../fits/fitsinput.f'

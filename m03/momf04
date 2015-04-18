@@ -1,0 +1,88 @@
+#
+# This is MOMF04, effectively MOMF03 run on a subset of all the data
+#
+set old=`pwd`
+cd $MOMF_DATAOUT
+
+mv REL REL.org
+mv ABS ABS.org
+mv Absname Absname.org
+mv Relname Relname.org
+mv offset.PHOT offset.PHOT.org
+mv offset.SUM offset.SUM.org
+mv basic.PHOT basic.PHOT.org
+
+#Define the 'some' and keep them in *.PHOT and *.SUM
+head -240 offset.PHOT.org > offset.PHOT
+head -240 offset.SUM.org > offset.SUM
+head -240 basic.PHOT.org > basic.PHOT
+
+mkdir REL ABS
+echo "Generate file names"
+$MOMF_PROG/m03/lib/MAGname
+$MOMF_PROG/m03/lib/MAGvariab
+cd REL
+cp $old/MOMF.ref MOMF.ref
+rm -f starfile
+ls STAR* > starfile
+echo "Start sorting..."
+$MOMF_PROG/m03/lib/scattername
+echo "Doing relative MAG"
+$MOMF_PROG/m03/lib/MAGrelativ
+echo "Doing mean MAG"
+$MOMF_PROG/m03/lib/MAGmean
+echo "Doing new MAG"
+$MOMF_PROG/m03/lib/MAGnew
+echo "Doing relative MAG"
+$MOMF_PROG/m03/lib/MAGrelativ
+echo "Doing mean MAG"
+$MOMF_PROG/m03/lib/MAGmean
+echo "Doing new MAG"
+$MOMF_PROG/m03/lib/MAGnew
+echo "Doing relative MAG"
+$MOMF_PROG/m03/lib/MAGrelativ
+echo "Doing mean MAG"
+$MOMF_PROG/m03/lib/MAGmean
+echo "Doing new MAG"
+$MOMF_PROG/m03/lib/MAGnew
+echo "Doing relative MAG"
+$MOMF_PROG/m03/lib/MAGrelativ
+echo "Doing mean MAG"
+$MOMF_PROG/m03/lib/MAGmean
+echo "Doing new MAG"
+$MOMF_PROG/m03/lib/MAGnew
+echo "Doing relative MAG"
+$MOMF_PROG/m03/lib/MAGrelativ
+echo "Doing a sort"
+$MOMF_PROG/m03/lib/MAGsort
+rm -f scatter3 scatter4 scatter5
+sort +2n scatter2 > scatter3 
+sort +6n scatter2 > scatter4 
+sort +7n scatter2 > scatter5 
+echo "Doing another sort"
+$MOMF_PROG/m03/lib/MAGsort2
+rm -f scatter7
+sort +4n scatter6 > scatter7
+rm -f MOMF.ref
+
+cd $MOMF_DATAOUT
+
+mv REL REL.some
+mv ABS ABS.some
+mv Absname Absname.some
+mv Relname Relname.some
+
+mv REL.org REL
+mv ABS.org ABS
+mv Absname.org Absname
+mv Relname.org Relname
+
+mv offset.PHOT offset.PHOT.some
+mv offset.SUM offset.SUM.some
+mv basic.PHOT basic.PHOT.some
+
+mv offset.PHOT.org offset.PHOT 
+mv offset.SUM.org offset.SUM
+mv basic.PHOT.org basic.PHOT
+
+cd $old

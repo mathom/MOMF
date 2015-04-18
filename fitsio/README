@@ -1,0 +1,83 @@
+This directory contains files related to version 5.0 of the FITSIO
+subroutine package for reading and writing data files in FITS (Flexible
+Image Transport System) format:
+
+
+Documentation
+-------------
+README         this file
+changes.doc    description of the changes made in each new release of FITSIO
+
+fitsio.doc     User's manual for the FITSIO package (ASCII Text)
+fitsio.tex     User's manual for the FITSIO package (LaTeX file)
+fitsio.toc     User's manual Table of Contents (used by fitsio.tex)
+fitsio.ps      Postscript version of User's manual
+
+cookbook.tex   FITSIO Cookbook (LaTex file)
+cookbook.toc   Cookbook Table of Contents (used by cookbook.tex)
+cookbook.ps    Postscript version of the cookbook
+cookbook.f     Source code for cookbook example programs
+
+Source Code
+-----------
+fitsio.f       Fortran source code for all the machine independent subroutines
+fitsfort.f     Additional subroutines used in all but the SPP version
+
+   The following files contain the machine-specific parts of FITSIO:
+
+fitsf90.f         for most Fortran-90 compilers
+fitscray.f        for CRAY supercomputers (C98 with cf77 compiler)
+fitsdec.f         for the DECStation, Alpha OSF, SGI, NeXT+Oasys Fortran  
+fitslinx.f        for Linux operating system
+fitsmac.f         for the Macintosh PC + Absoft Fortran
+fitsmacls.f       for the Macintosh PC + Language Systems Fortran
+fitsnxab.f        for Next computers using Absoft Fortran
+fitssun.f         for the SUN, HP, IBM AIX 
+
+fitsalphavms.f    for the DEC Alpha/AXP OpenVMS  
+fitsvax.f         for the VAX/VMS  
+vmsieeed.mar      assembler routines to do float data conversions on VAX/VMS
+vmsieee.c         C routine to do float data conversion on Alpha/VMS
+
+Build Procedures
+----------------
+configure         Unix script to build and customize the Makefile
+configure.in      Used to create configure (used by autoconf)
+Makefile          Dummy Unix Makefile (run configure to create the real one)
+Makefile.in       Use by configure to build the Makefile
+Makef90           Makefile to buile Fortran-90 version of FITSIO (Beta version)
+makevms.com       Command file to build the FITSIO on VAX or ALPHA VMS.
+makevmsd.com      Command file to build the FITSIO on ALPHA VMS with dfloat
+acMakefiles.sit.hqx  PowerMac make files (use unbinhex and unstuff to decode)
+fsplit.c          Source code for the fsplit program (used in the Makefile)
+split.f           Fortran program to split fitsio.f and fitsfort.f into files
+
+C Related Files (These are now obsolete. Use the new ANSI-C version instead!)
+---------------
+cfitsio.h    \   These files 
+cfortran.h    \    are required
+pctype,h       ]     to call 
+cfitsio.doc   /        FITSIO from
+cfortran.doc /           C programs
+cfortex.f    Example Fortran program distributed with cfortran.h
+cfortest.c   Example C program distributed with cfortran.h
+
+wsimple.c    simple C program to write a FITS file 
+rsimple.c    simple C program to read the FITS file created by wsimple.c
+
+IRAF/SPP Files
+---------------
+fitsiospp.h \   These files are
+fitsspp.com  \    required for
+fitsspp.x     \     the IRAF/SPP
+fitssppvms.x  /       version of
+fitssppb.x   /          FITSIO
+mkpkg       /           
+
+Test Program
+-------------
+testprog.f     test program to perform exhaustive test of FITSIO
+testprog.std   test FITS file created by testprog.f
+testprog.out   output created by testprog.f on a SUN workstation
+speed.f    \   program to measure the speed to write/read large FITS file
+speedf90.f /       (won't work on all platforms)

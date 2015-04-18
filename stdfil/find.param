@@ -1,0 +1,4 @@
+-2.0    sigma  (used in test for reality of star, disabled)
+20      number of segments (not used in this version of software)
+0.0     cosmic threshold (disabled, set to one third to detect cosmic rays)
+30.0    sky background (used in test for cosmics)
