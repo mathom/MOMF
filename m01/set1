@@ -6,7 +6,7 @@ $MOMF_PROG/m01/momf.COOR $MOMF_PROG
 mv Dstars2 PSFstars
 $MOMF_PROG/m01/lib/Dsort
 rm -f qqww Dstars
-sort -n +0.0 coor.SUM > qqww
+sort -n -k 1.1 coor.SUM > qqww
 mv qqww coor.SUM
 rm -f coomin Dcoo.coo Dcoo.fit Dstars3 core
 rm -f imname find.coo im.SUM im.STAT
@@ -30,7 +30,7 @@ echo 'coordinate I'
 $1/m01/lib/Dcoor
 ls -l Dstars
 cp Dstars sort.test.before
-sort -n  +0.0 Dstars > Dstars2
+sort -n -k 1.1 Dstars > Dstars2
 cp Dstars2 sort.test.after
 echo 'Show I'
 ls -l Dcoo.fit Dstars*

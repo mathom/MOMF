@@ -29,15 +29,15 @@ else
  vi MOMFfind.coo
 endif
 rm find.coo
-sort +6n MOMFfind.coo > find.coo
+sort -n -k 7 MOMFfind.coo > find.coo
 $1/m01/lib/Dchange
 $1/m01/lib/Dcoor2
 rm -f PSFstars2
-sort -n +0.0 PSFstars > PSFstars2
+sort -n -k 1.1 PSFstars > PSFstars2
 rm PSFstars
 $1/m01/lib/Dshow2
 rm PSFstars2
 $1/m01/lib/Dsort
 rm -f qqww
-sort -n +0.0 coor.SUM > qqww
+sort -n -k 1.1 coor.SUM > qqww
 mv qqww coor.SUM

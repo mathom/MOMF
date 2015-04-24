@@ -7,7 +7,7 @@ $MOMF_PROG/m01/momf.COOR $MOMF_PROG
 mv Dstars2 PSFstars
 $MOMF_PROG/m01/lib/Dsort
 rm -f qqww Dstars
-sort -n +0.0 coor.SUM > qqww
+sort -n -k 1.1 coor.SUM > qqww
 mv qqww coor.SUM
 rm -f coomin Dcoo.coo Dcoo.fit Dstars3 core
 rm -f imname find.coo im.SUM im.STAT

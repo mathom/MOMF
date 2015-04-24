@@ -41,12 +41,12 @@ $MOMF_PROG/m03/lib/MAGrelativ
 echo "Doing a sort"
 $MOMF_PROG/m03/lib/MAGsort
 rm -f scatter3 scatter4 scatter5
-sort +2n scatter2 > scatter3 
-sort +6n scatter2 > scatter4 
-sort +7n scatter2 > scatter5 
+sort -n -k 3 scatter2 > scatter3 
+sort -n -k 7 scatter2 > scatter4 
+sort -n -k 8 scatter2 > scatter5 
 echo "Doing another sort"
 $MOMF_PROG/m03/lib/MAGsort2
 rm -f scatter7
-sort +4n scatter6 > scatter7
+sort -n -k 5 scatter6 > scatter7
 rm -f MOMF.ref
 cd $old
