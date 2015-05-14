@@ -5,8 +5,9 @@ See the [manual](http://users-phys.au.dk/srf/STACC/ManMOMF.pdf) for more details
 
 ## Requirements
 
-`sudo apt-get install gfortran build-essentials`
+`sudo apt-get install gfortran gcc`
 
 ## Building
 
 Simply run `make` and it should build.
+If in doubt, run a `make clean` before!
