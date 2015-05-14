@@ -247,7 +247,7 @@ c
 503    continue
        sback=sqrt(sba)
 504    continue
-       write(6,412)'Sky-background',h,back,sback
+       write(6,412)'Sky-background',INT(h),back,sback
 412       format(a15,i10,2f12.2)
  
 510    continue

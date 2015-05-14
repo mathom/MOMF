@@ -289,7 +289,7 @@ c
 c
 c   PSFarray: values: 100.0
 c
-          write(6,809)0,sqrt(dist1),sqrt(dist2),sqrt(dist3),sqrt(dist4)
+          write(6,809)0.0,sqrt(dist1),sqrt(dist2),sqrt(dist3),sqrt(dist4)
 809          format(f8.3,4f12.3)
           write(6,*)qqww,qqww
  
